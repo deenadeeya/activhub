@@ -1,0 +1,122 @@
+/*Applied at
+index.php
+*/
+
+body {
+    background-image: url(../img/bg.jpg);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    margin: 0;
+    font-family: 'Lato', sans-serif;
+  }
+  
+  .overlay {
+    background-color: rgba(224, 239, 220, 0.8);
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .container {
+    max-width: 900px;
+    padding: 30px;
+  }
+  
+.header-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.header-row {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.logo {
+    width: 180px;
+    height: auto;
+}
+
+.title-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: left;
+}
+
+.title-text .welcome {
+    font-size: 1.6em;
+    margin: 0;
+    font-weight: 400;
+}
+
+.title-text h1 {
+    font-size: 4.5em;
+    font-weight: 700;
+    margin: 5px 0;
+}
+
+.subtitle {
+    margin-top: 20px;
+    font-size: 1.5em;
+    font-style: italic;
+    text-align: center;
+    color: #333;
+    font-weight: bold;
+}
+  
+/*
+  .login-box {
+    align-items: center;
+    max-width: 400px;
+    min-height: 160x;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease;
+  }
+*/
+
+  .login-message {
+    color: black;
+    margin-top: 5px;
+  }
+
+
+  .button-group {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+  
+  .button a {
+    display: inline-block;
+    padding: 15px 30px;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #f3f315;
+    border-radius: 25px;
+    color: black;
+    text-decoration: none;
+    transition: 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+  
+  .button a:hover {
+    background-color: #dede00;
+    transform: scale(1.05);
+  }
+  

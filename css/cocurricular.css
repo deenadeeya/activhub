@@ -1,0 +1,164 @@
+.card-section {
+    display: flex;
+    flex-wrap: wrap; /* makes it responsive on small screens */
+    justify-content: space-between;
+    padding: 20px;
+    margin-bottom: 30px;
+  }
+  
+  .card {
+    flex: 1;
+    min-width: 280px;
+    min-height: 600px;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 5px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease;
+  }
+  
+  
+  .left-card {
+    flex: 1;
+    min-width: 100px;
+    max-width: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;  /* Vertical centering */
+    height: 100%;  
+    border: 1px solid black;
+  }
+  
+  .right-card {
+    flex: 2;
+    min-width: 700px;
+    border: 1px solid black;
+    
+  }
+  
+  .act-card {
+    flex: 1;
+    min-width: 280px;
+    min-height: 400px;
+    max-height: 550px;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 5px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease;
+  }
+
+  .activity-form-card {
+    flex: 2;
+    border: 1px solid black;
+    
+  }
+  
+  .activity-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .activity-list li {
+    margin-top: 8px;
+    margin-bottom: 2px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .activity-list label {
+    margin-bottom: 5px;
+  }
+  
+  .activity-list input[type="text"] {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    width: 95%;
+  }
+  
+  button[type="submit"] {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #0066cc;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: background-color 0.2s ease;
+    
+  }
+  
+  button[type="submit"]:hover {
+    background-color: #004b99;
+  }
+  
+  @media (max-width: 768px) {
+    .card-section {
+      flex-direction: column;
+    }
+  
+    .right-card {
+      min-width: 100%;
+    }
+  
+    .left-card {
+      min-width: 100%;
+    }
+  }
+  
+
+
+  /* General table styling */
+table {
+  width: 70%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 1rem;
+  font-family: Arial, sans-serif;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Header row */
+thead tr {
+  background-color: #064789;
+  color: #fff;
+  text-align: left;
+}
+
+/* Hover effect */
+tbody tr {
+  background-color: #ffffff; 
+}
+
+
+/* Table cells */
+th, td {
+  padding: 12px 15px;
+  border: 1px solid #ccc;
+}
+
+
+/* Hover effect */
+tbody tr:hover {
+  background-color: #cbd2ff;
+  cursor: pointer;
+}
+
+/* Responsive handling */
+@media screen and (max-width: 768px) {
+  table {
+    font-size: 0.9rem;
+  }
+
+  th, td {
+    padding: 10px;
+  }
+}
+
+.empty-space {
+  height: 10px;
+}

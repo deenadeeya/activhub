@@ -1,0 +1,101 @@
+/*Applied at
+student_cocurricular.php
+admin_dashboard,php
+*/
+
+
+/*Background Theme*/
+body {
+    margin: 0;
+    font-family: 'Lato', sans-serif;
+    background: url('../img/bg.jpg') no-repeat center center fixed;
+    background-size: cover;
+}
+
+.container {
+    background-color: rgba(224, 239, 220, 0.8);
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+/*Header*/
+header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background-color: #064789;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    flex-wrap: wrap;
+}
+
+/*Left Header*/
+.logo-section {
+    display: flex;
+    align-items: center;
+}
+
+.logo-section img {
+    height: 50px;
+    margin-right: 10px;
+}
+
+.logo-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.nav-links {
+    display: flex;
+    gap: 15px;
+    margin-top: 5px;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    font-size: 14px;
+    position: relative;
+}
+
+.nav-links a:hover {
+    color: #ffeb3b;
+}
+
+/*Right Header*/
+.icon-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-section {
+    text-align: right;
+}
+
+.username {
+    font-weight: bold;
+}
+
+.user-text {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.welcome-text {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+
+.bell {
+    font-size: 18px;
+    margin-left: 10px;
+}

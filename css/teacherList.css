@@ -1,0 +1,221 @@
+body {
+    background-image: url(../img/bg.jpg);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    font-family: "Lato", sans-serif;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background-color: #064789;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    flex-wrap: wrap;
+    
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+}
+
+.logo-section img {
+    height: 50px;
+    margin-right: 10px;
+}
+
+.logo-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.nav-links {
+    display: flex;
+    gap: 15px;
+    margin-top: 5px;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    font-size: 14px;
+    position: relative;
+}
+
+.nav-links a:hover {
+    color: #ffeb3b;
+}
+
+.icon-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.admin-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.admin-text {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    background-color: rgba(224, 239, 220, 0.8);
+    position: relative;
+    height: 100vh;
+    overflow: auto;
+}
+
+.teacher-list-container {
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.teacher-list-box {
+    background-color: #738A6E;
+    padding: 20px;
+    border-radius: 20px;
+    width: 90%;
+    max-height: 600px;
+    max-width: 700px;
+    overflow-y: auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.title-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.title-bar h2 {
+    margin: 0;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-yellow {
+    background-color: #ffeb3b;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-red {
+    background-color: #ff3b3b;
+    color: #ffffff;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.teacher-card {
+    background-color: white;
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    position: relative;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.teacher-card p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.credentials {
+    font-weight: bold;
+}
+
+.edit-button {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    background-color: white;
+    border: 2px solid #064789;
+    color: #064789;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.edit-button:hover {
+    background-color: #064789;
+    color: white;
+}
+
+table tr td .button_save{
+    width: 90%;
+    right: 20px;
+    top: 20px;
+    background-color: white;
+    border: 2px solid #06892d;
+    color: #06892d;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+table tr td .button_delete {
+    width: 90%;
+    right: 20px;
+    top: 20px;
+    background-color: white;
+    border: 2px solid #890a06;
+    color: #890a06;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+table tr td .button_cancel {
+    width: 90%;
+    right: 20px;
+    top: 20px;
+    background-color: white;
+    border: 2px solid #130689;
+    color: #130689;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+table tr td input{
+    width: 80%;
+}
+table tr td select{
+    width: 80%;
+}
