@@ -19,6 +19,17 @@ if ($result && mysqli_num_rows($result) === 1) {
   exit();
 }
 
+$leaderboard_query = "
+  SELECT s.student_fname, s.student_class, COUNT(a.id) AS total_activities
+  FROM student s
+  LEFT JOIN cocu_activities a ON s.student_ic = a.student_ic
+  GROUP BY s.student_ic
+  ORDER BY total_activities DESC
+  LIMIT 10
+";
+$leaderboard_result = mysqli_query($conn, $leaderboard_query);
+
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -63,6 +74,7 @@ if ($result && mysqli_num_rows($result) === 1) {
       <div class="welcome-texts">
         <h1>Selamat Datang ke SRIAAWP ActivHub</h1>
         <h2>"Pusat Rekod Kokurikulum Pelajar SRI AL-AMIN WILAYAH PERSEKUTUAN"</h2>
+        
       </div>
     </div>
 
@@ -72,7 +84,7 @@ if ($result && mysqli_num_rows($result) === 1) {
         <p>HELLO,<br> <?php echo strtoupper($row['student_fname']); ?></p>
         <button class="btn-yellow">PETI MASUK</button>
         <button class="btn-yellow" onClick="location.href='student_profile.php';">PROFIL</button>
-        <button class="btn-yellow" onClick="location.href='student_cocurricular.php';">PENCAPAIAN KOKURIKULUM</button>
+        <button class="btn-yellow" onClick="location.href='student_cocurricular.php';">PROFIL & AKTIVITI KOKURIKULUM</button>
         <button class="btn-yellow">PAPAN KOKURIKULUM</button>
         <form action="logout.php" method="post">
           <button type="submit" class="btn-red">DAFTAR KELUAR</button>
@@ -117,31 +129,56 @@ if ($result && mysqli_num_rows($result) === 1) {
     <h1>LEADERBOARD</h1>
     <h3>“10 Pelajar Terbaik Dengan Jumlah Aktiviti Kokurikulum Terbanyak Bulan Ini”</h3>
 
-    <table>
-      <thead>
+<table>
+  <thead>
+    <tr>
+      <th class="rank">TEMPAT</th>
+      <th class="student">NAMA MURID</th> 
+
+      <th class="total">JUMLAH AKTIVITI</th>
+    </tr>
+  </thead>
+  <tbody>
+    <?php
+    $rank = 1;
+    if ($leaderboard_result && mysqli_num_rows($leaderboard_result) > 0):
+        while ($leader = mysqli_fetch_assoc($leaderboard_result)):
+    ?>
+        <tr<?php if ($rank === 1) echo ' class="top"'; ?>>
+            <td><?php echo $rank; ?></td>
+            <td><?php echo htmlspecialchars($leader['student_fname']); ?></td>
+
+            <td><?php echo $leader['total_activities']; ?></td>
+        </tr>
+    <?php
+            $rank++;
+        endwhile;
+
+        while ($rank <= 10):
+    ?>
         <tr>
-          <th class="rank">TEMPAT</th>
-          <th class="student">NAMA MURID</th> 
-          <th class="total">JUMLAH AKTIVITI</th>
+            <td><?php echo $rank; ?></td>
+            <td>-</td>
+            <td>-</td>
+
         </tr>
-      </thead>
-      <tbody>
-        <tr class="top">
-          <td>1</td>
-          <td>Hafiz Bin Ahmad</td>
-          <td>5</td>
+    <?php
+            $rank++;
+        endwhile;
+    else:
+        for ($rank = 1; $rank <= 10; $rank++):
+    ?>
+        <tr>
+            <td><?php echo $rank; ?></td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
         </tr>
-        <tr><td>2</td><td>-</td><td>-</td></tr>
-        <tr><td>3</td><td>-</td><td>-</td></tr>
-        <tr><td>4</td><td>-</td><td>-</td></tr>
-        <tr><td>5</td><td>-</td><td>-</td></tr>
-        <tr><td>6</td><td>-</td><td>-</td></tr>
-        <tr><td>7</td><td>-</td><td>-</td></tr>
-        <tr><td>8</td><td>-</td><td>-</td></tr>
-        <tr><td>9</td><td>-</td><td>-</td></tr>
-        <tr><td>10</td><td>-</td><td>-</td></tr>
-      </tbody>
-    </table>
+    <?php endfor; ?>
+    <?php endif; ?>
+  </tbody>
+</table>
+
   </div>
 </body>
 </html>

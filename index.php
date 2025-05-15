@@ -22,6 +22,9 @@
           </div>
         </div>
         <p class="subtitle">“Pusat Rekod Kokurikulum Murid-Murid SRI AL-AMIN WILAYAH PERSEKUTUAN”</p>
+        <p class="subtitle">“ڤوست ريكود كوكوريكولوم موريد-موريد سري الأمين ولايه ڤرسكوتوان”</p>
+
+ 
       </div>
       <br><br>
 
@@ -30,7 +33,7 @@
         <br>
         <div class="button-group">
           <div class="button">
-            <a href="login.php">LOG MASUK</a>
+            <a href="login.php">LOG MASUK <br>لوڬ ماسوق</a>
           </div>
         </div>
       </div>

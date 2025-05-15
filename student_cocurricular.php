@@ -63,6 +63,14 @@ if ($stmt) {
     $error_message = "Database error: " . $conn->error;
 }
 
+//Get existing corruciular activities
+$activity_query = "SELECT * FROM cocu_activities WHERE student_ic = ? ORDER BY activity_date DESC";
+$stmt = $conn->prepare($activity_query);
+$stmt->bind_param("s", $student_ic);
+$stmt->execute();
+$activity_result = $stmt->get_result();
+
+
 ?>
 
 <!DOCTYPE html>
@@ -170,23 +178,31 @@ if ($stmt) {
         </tr>
         </thead>
         <tbody>
-        <tr>
-            <td>2025-03-15</td>
-            <td>Hari Sukan</td>
-            <td>Stadium Bukit Jalil</td>
-            <td>Sukan: Kebangsaan</td>
-            <td>Tempat Pertama - 100m Lari Pecut</td>
-        </tr>
-        <tr>
-            <td>2025-04-10</td>
-            <td>Gotong Royong</td>
-            <td>SRIAAWP</td>
-            <td>Lain-lain: Luar Sekolah</td>
-            <td>Sukarelawan</td>
-        </tr>
-          <!-- Add more rows as needed -->
+        <?php if ($activity_result->num_rows > 0): ?>
+            <?php while ($activity = $activity_result->fetch_assoc()): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($activity['activity_date']); ?></td>
+                    <td><?php echo htmlspecialchars($activity['activity_name']); ?></td>
+                    <td><?php echo htmlspecialchars($activity['activity_location']); ?></td>
+                    <td><?php echo htmlspecialchars($activity['activity_category']); ?></td>
+                    <td>
+                        <?php echo htmlspecialchars($activity['award']); ?>
+                        <?php if (!empty($activity['cert_path'])): ?>
+                            <br><a href="<?php echo $activity['cert_path']; ?>" target="_blank">[Sijil]</a>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+            <?php endwhile; ?>
+        <?php else: ?>
+            <tr>
+                <td colspan="5" style="text-align: center;">Tiada aktiviti ditemui.</td>
+            </tr>
+        <?php endif; ?>
+        </tbody>
+
         </tbody>
       </table>
+      
   </div>
 </body>
 </html>

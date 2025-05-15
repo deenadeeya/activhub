@@ -118,11 +118,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       <div class="header-row">
         <img src="img/logo.png" alt="School Logo" class="logo" />
         <div class="title-text">
-          <p class="welcome">Selamat Datang Ke</p>
+          <p class="welcome">Selamat Datang Ke سلامت داتڠ ك</p>
           <h1>SRIAAWP ActivHub</h1>
         </div>
       </div>
       <p class="subtitle">“Pusat Rekod Kokurikulum Pelajar SRI AL-AMIN WILAYAH PERSEKUTUAN”</p>
+      <p class="subtitle">“ڤوست ريكود كوكوريكولوم موريد-موريد سري الأمين ولايه ڤرسكوتوان”</p>
 
       <!-- LOGIN BOX -->
       <div class="login-box">

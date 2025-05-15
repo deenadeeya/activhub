@@ -2,6 +2,16 @@
 require_once '../connect.php';
 session_start();
 
+$leaderboard_query = "
+  SELECT s.student_fname, s.student_class, COUNT(a.id) AS total_activities
+  FROM student s
+  LEFT JOIN cocu_activities a ON s.student_ic = a.student_ic
+  GROUP BY s.student_ic
+  ORDER BY total_activities DESC
+  LIMIT 10
+";
+$leaderboard_result = mysqli_query($conn, $leaderboard_query);
+
 
 // if (!isset($_SESSION['teacher_ic'])) {
 
@@ -119,31 +129,52 @@ session_start();
     <h1>LEADERBOARD</h1>
     <h3>“10 Pelajar Terbaik Dengan Jumlah Aktiviti Kokurikulum Terbanyak Bulan Ini”</h3>
 
-    <table>
-      <thead>
+<table>
+  <thead>
+    <tr>
+      <th class="rank">TEMPAT</th>
+      <th class="student">NAMA MURID</th> 
+      <th class="total">JUMLAH AKTIVITI</th>
+    </tr>
+  </thead>
+  <tbody>
+    <?php
+    $rank = 1;
+    if ($leaderboard_result && mysqli_num_rows($leaderboard_result) > 0):
+        while ($leader = mysqli_fetch_assoc($leaderboard_result)):
+    ?>
+        <tr<?php if ($rank === 1) echo ' class="top"'; ?>>
+            <td><?php echo $rank; ?></td>
+            <td><?php echo htmlspecialchars($leader['student_fname']); ?></td>
+            <td><?php echo $leader['total_activities']; ?></td>
+        </tr>
+    <?php
+            $rank++;
+        endwhile;
+
+        while ($rank <= 10):
+    ?>
         <tr>
-          <th class="rank">TEMPAT</th>
-          <th class="student">NAMA MURID</th> 
-          <th class="total">JUMLAH AKTIVITI</th>
+            <td><?php echo $rank; ?></td>
+            <td>-</td>
+            <td>-</td>
         </tr>
-      </thead>
-      <tbody>
-        <tr class="top">
-          <td>1</td>
-          <td>Hafiz Bin Ahmad</td>
-          <td>5</td>
+    <?php
+            $rank++;
+        endwhile;
+    else:
+        for ($rank = 1; $rank <= 10; $rank++):
+    ?>
+        <tr>
+            <td><?php echo $rank; ?></td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
         </tr>
-        <tr><td>2</td><td>-</td><td>-</td></tr>
-        <tr><td>3</td><td>-</td><td>-</td></tr>
-        <tr><td>4</td><td>-</td><td>-</td></tr>
-        <tr><td>5</td><td>-</td><td>-</td></tr>
-        <tr><td>6</td><td>-</td><td>-</td></tr>
-        <tr><td>7</td><td>-</td><td>-</td></tr>
-        <tr><td>8</td><td>-</td><td>-</td></tr>
-        <tr><td>9</td><td>-</td><td>-</td></tr>
-        <tr><td>10</td><td>-</td><td>-</td></tr>
-      </tbody>
-    </table>
+    <?php endfor; ?>
+    <?php endif; ?>
+  </tbody>
+</table>
 
    
 

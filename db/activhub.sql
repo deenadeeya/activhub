@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 18, 2025 at 07:58 AM
+-- Generation Time: May 15, 2025 at 04:00 AM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -63,6 +63,60 @@ INSERT INTO `class` (`class_id`, `class_name`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `cocurricular`
+--
+
+CREATE TABLE `cocurricular` (
+  `student_ic` varchar(20) NOT NULL,
+  `cocu_year` varchar(4) NOT NULL,
+  `uniform_bodies` varchar(100) DEFAULT NULL,
+  `uniform_bodies_role` varchar(100) DEFAULT NULL,
+  `sports` varchar(100) DEFAULT NULL,
+  `sports_role` varchar(100) DEFAULT NULL,
+  `clubs_assoc` varchar(100) DEFAULT NULL,
+  `clubs_assoc_role` varchar(100) DEFAULT NULL,
+  `activity_others` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `cocurricular`
+--
+
+INSERT INTO `cocurricular` (`student_ic`, `cocu_year`, `uniform_bodies`, `uniform_bodies_role`, `sports`, `sports_role`, `clubs_assoc`, `clubs_assoc_role`, `activity_others`) VALUES
+('160406028234', '', '', '', '', '', '', '', 'Pengawas Sekolah'),
+('160406028234', '2025', 'PBSM', 'Ahli Biasa', 'Badminton', 'Presiden', 'Kelab Alam Sekitar', 'Setiausaha', 'Pengawas Sekolah');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cocu_activities`
+--
+
+CREATE TABLE `cocu_activities` (
+  `id` int(11) NOT NULL,
+  `student_ic` varchar(20) NOT NULL,
+  `activity_name` varchar(255) NOT NULL,
+  `activity_category` varchar(100) DEFAULT NULL,
+  `activity_date` date DEFAULT NULL,
+  `award` varchar(255) DEFAULT NULL,
+  `activity_location` varchar(255) DEFAULT NULL,
+  `org` varchar(255) DEFAULT NULL,
+  `cert_path` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `ach` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `cocu_activities`
+--
+
+INSERT INTO `cocu_activities` (`id`, `student_ic`, `activity_name`, `activity_category`, `activity_date`, `award`, `activity_location`, `org`, `cert_path`, `created_at`, `ach`) VALUES
+(1, '160406028234', 'Melawat Zoo', 'Lawatan', '2025-05-12', 'Penyertaan', 'Zoo Negara', 'SRIAAWP', 'uploads/certificates/raccoon test.pdf', '2025-05-14 05:52:33', NULL),
+(2, '160406028234', 'eweeq', 'eqwewqe', '2025-05-28', 'eqeqe', 'ewqe', 'eweqe', 'uploads/certificates/raccoon test.pdf', '2025-05-14 05:54:21', NULL);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `student`
 --
 
@@ -88,8 +142,10 @@ CREATE TABLE `student` (
 --
 
 INSERT INTO `student` (`student_ic`, `student_pass`, `student_fname`, `student_class`, `student_dob`, `student_doe`, `student_address`, `student_emergency`, `guardian_ic`, `guardian_name`, `relationship`, `guardian_address`, `contact_num`, `teacher_incharge`) VALUES
-('160406028234', '$2y$10$3YnPxeqzCPDskM.zq69kS.Bhq4gUrT92A.u2nyAmz1N8WTCqeL82e', 'Mimi Liyana Bint Muhammad Arif', 3, '2016-04-06', '2025-02-17', '9-1 Jalan Putra Sulaiman 8, Taman Putra Sulaiman Ampang, Kuala Lumpur, 68000 Wilayah Persekutuan Kuala Lumpur', '0196530274', '900101029831', 'Muhammad Arif Bin Syukri', 'Father', '9-1 Jalan Putra Sulaiman 8, Taman Putra Sulaiman Ampang, Kuala Lumpur, 68000 Wilayah Persekutuan Kuala Lumpur', '0165432261', '770809147765'),
-('160914023634', '$2y$10$qZkP66qsnHSpsJ.DVTpVCe1Lv4NdQOJirJ.94JhtRv5K8CyGzjJOq', 'SITI AISYAH BINTI NORMAN', 3, '2016-09-14', '2025-02-17', '68, Jalan Imbi, Imbi, 55035 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia', '0132698897', '800211015621', 'NORMAN HAKIMI BIN SYUKRI JEBAT', 'FATHER', '68, Jalan Imbi, Imbi, 55035 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia', '0126021187', '770809147765');
+('020202021298', 'student123', 'Ain Natasha', 2, '2025-02-02', '2025-05-01', 'Kuala Lumpur', '01234567789', '020202107354', 'Nazim Ahmad', 'Father', 'Kuala Lumpur', '01957925647', '910711028452'),
+('160406028234', '$2y$10$weFCXO2tRx7R1PRNNxozmu812GupTehK/Hpyauqc//9H5Rn905oie', 'Mimi Liyana Bint Muhammad Arif', 3, '2016-04-06', '2025-02-17', '9-1 Jalan Putra Sulaiman 8, Taman Putra Sulaiman Ampang, Kuala Lumpur, 68000 Wilayah Persekutuan Kuala Lumpur', '0196530274', '900101029831', 'Muhammad Arif Bin Syukri', 'Father', '9-1 Jalan Putra Sulaiman 8, Taman Putra Sulaiman Ampang, Kuala Lumpur, 68000 Wilayah Persekutuan Kuala Lumpur', '0165432261', '770809147765'),
+('160914023634', '$2y$10$qZkP66qsnHSpsJ.DVTpVCe1Lv4NdQOJirJ.94JhtRv5K8CyGzjJOq', 'SITI AISYAH BINTI NORMAN', 3, '2016-09-14', '2025-02-17', '68, Jalan Imbi, Imbi, 55035 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia', '0132698897', '800211015621', 'NORMAN HAKIMI BIN SYUKRI JEBAT', 'FATHER', '68, Jalan Imbi, Imbi, 55035 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia', '0126021187', '770809147765'),
+('180907132217', '$2y$10$geEdO058u0ZWTS8F2rA2veFh6eEuMrpOstvkVpSEo/Sb8cdDBjVr2', 'Ain Natasha H', 2, '0000-00-00', '0000-00-00', '', '', '', '', '', '', '', '910711028452');
 
 -- --------------------------------------------------------
 
@@ -136,6 +192,18 @@ ALTER TABLE `class`
   ADD PRIMARY KEY (`class_id`);
 
 --
+-- Indexes for table `cocurricular`
+--
+ALTER TABLE `cocurricular`
+  ADD PRIMARY KEY (`student_ic`,`cocu_year`);
+
+--
+-- Indexes for table `cocu_activities`
+--
+ALTER TABLE `cocu_activities`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `student`
 --
 ALTER TABLE `student`
@@ -161,8 +229,20 @@ ALTER TABLE `class`
   MODIFY `class_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
+-- AUTO_INCREMENT for table `cocu_activities`
+--
+ALTER TABLE `cocu_activities`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `cocurricular`
+--
+ALTER TABLE `cocurricular`
+  ADD CONSTRAINT `cocurricular_ibfk_1` FOREIGN KEY (`student_ic`) REFERENCES `student` (`student_ic`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `student`
