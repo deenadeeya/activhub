@@ -86,7 +86,7 @@ $leaderboard_result = mysqli_query($conn, $leaderboard_query);
       <button class="btn-yellow" onclick="window.location.href='../teacher/teacher_profile.php'">PROFIL GURU</button>
       <button class="btn-yellow" onclick="window.location.href='../studentList.php'">SENARAI PELAJAR</button>
       <button class="btn-yellow">TAMBAH ACARA KOKURIKULUM</button>
-      <button class="btn-yellow">PAPAN KOKURIKULUM</button>
+      <button class="btn-yellow" onclick="location.href ='../cocurricular_board.php'">PAPAN KOKURIKULUM</button>
       <form action="../logout.php" method="post">
         <button type="submit" class="btn-red">DAFTAR KELUAR</button>
       </form>

@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SRIAAWP ActivHub</title>
   <link href="http://fonts.googleapis.com/css?family=Lato:300,400,700" rel="stylesheet" type="text/css">
- 
+
   <link rel="stylesheet" href="../css/admin_dash.css" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
   <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
@@ -23,7 +23,7 @@
           <a href="#">Papan Pemuka</a>
           <a href="admin_list.php">Senarai Admin</a>
           <a href="../teacher/teacherList.php">Senarai Guru-Guru</a>
-          <a href="admin_studentList">Senarai Murid-Murid</a>
+          <a href="admin_studentList.php">Senarai Murid-Murid</a>
           <a href="admin_list.php"></a>
         </div>
       </div>
@@ -54,8 +54,8 @@
         <button class="btn-yellow">PETI MASUK</button>
         <button class="btn-yellow" onclick="location.href='admin_list.php'">SENARAI ADMIN</button>
         <button class="btn-yellow" onclick="location.href='admin_classList.php'">SENARAI KELAS</button>
-        <button class=" btn-yellow" >TAMBAH ACARA KOKURIKULUM</button>
-        <button class="btn-yellow">PAPAN KOKURIKULUM</button>
+        <button class=" btn-yellow">TAMBAH ACARA KOKURIKULUM</button>
+        <button class="btn-yellow" onclick="location.href ='../cocurricular_board.php'">PAPAN KOKURIKULUM</button>
         <form action="../logout.php" method="post">
           <button type="submit" class="btn-red">DAFTAR KELUAR</button>
         </form>
@@ -117,35 +117,71 @@
 
 
     <div class="leaderboard">
-    <h1>LEADERBOARD</h1>
-    <h3>“10 Pelajar Terbaik Dengan Jumlah Aktiviti Kokurikulum Terbanyak Bulan Ini”</h3>
+      <h1>LEADERBOARD</h1>
+      <h3>“10 Pelajar Terbaik Dengan Jumlah Aktiviti Kokurikulum Terbanyak Bulan Ini”</h3>
 
-    <table>
-      <thead>
-        <tr>
-          <th class="rank">TEMPAT</th>
-          <th class="student">NAMA MURID</th> 
-          <th class="total">JUMLAH AKTIVITI</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr class="top">
-          <td>1</td>
-          <td>Hafiz Bin Ahmad</td>
-          <td>5</td>
-        </tr>
-        <tr><td>2</td><td>-</td><td>-</td></tr>
-        <tr><td>3</td><td>-</td><td>-</td></tr>
-        <tr><td>4</td><td>-</td><td>-</td></tr>
-        <tr><td>5</td><td>-</td><td>-</td></tr>
-        <tr><td>6</td><td>-</td><td>-</td></tr>
-        <tr><td>7</td><td>-</td><td>-</td></tr>
-        <tr><td>8</td><td>-</td><td>-</td></tr>
-        <tr><td>9</td><td>-</td><td>-</td></tr>
-        <tr><td>10</td><td>-</td><td>-</td></tr>
-      </tbody>
-    </table>
-  </div>
+      <table>
+        <thead>
+          <tr>
+            <th class="rank">TEMPAT</th>
+            <th class="student">NAMA MURID</th>
+            <th class="total">JUMLAH AKTIVITI</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="top">
+            <td>1</td>
+            <td>Hafiz Bin Ahmad</td>
+            <td>5</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>-</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>-</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>-</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>-</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>-</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>-</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td>-</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td>9</td>
+            <td>-</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <td>-</td>
+            <td>-</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
   </div>
 

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 15, 2025 at 04:00 AM
+-- Generation Time: May 19, 2025 at 03:16 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -83,8 +83,39 @@ CREATE TABLE `cocurricular` (
 --
 
 INSERT INTO `cocurricular` (`student_ic`, `cocu_year`, `uniform_bodies`, `uniform_bodies_role`, `sports`, `sports_role`, `clubs_assoc`, `clubs_assoc_role`, `activity_others`) VALUES
-('160406028234', '', '', '', '', '', '', '', 'Pengawas Sekolah'),
 ('160406028234', '2025', 'PBSM', 'Ahli Biasa', 'Badminton', 'Presiden', 'Kelab Alam Sekitar', 'Setiausaha', 'Pengawas Sekolah');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cocurricular_groups`
+--
+
+CREATE TABLE `cocurricular_groups` (
+  `group_id` int(11) NOT NULL,
+  `group_name` varchar(100) NOT NULL,
+  `group_type` enum('uniform_bodies','sports','clubs_associations','others') NOT NULL,
+  `group_description` text DEFAULT NULL,
+  `logo_path` varchar(255) DEFAULT NULL,
+  `advisor_name` varchar(100) DEFAULT NULL,
+  `advisor_ic` varchar(20) DEFAULT NULL,
+  `president_ic` varchar(20) DEFAULT NULL,
+  `vice_president_ic` varchar(20) DEFAULT NULL,
+  `secretary_ic` varchar(20) DEFAULT NULL,
+  `treasurer_ic` varchar(20) DEFAULT NULL,
+  `total_members` int(11) DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `cocurricular_groups`
+--
+
+INSERT INTO `cocurricular_groups` (`group_id`, `group_name`, `group_type`, `group_description`, `logo_path`, `advisor_name`, `advisor_ic`, `president_ic`, `vice_president_ic`, `secretary_ic`, `treasurer_ic`, `total_members`) VALUES
+(1, 'Red Crescent Youth', 'uniform_bodies', NULL, 'logos/red_crescent.png', 'SITI NUR AISYAH BINTI AIMAN', '910711028452', '05010101004', '05010101014', '05010101005', '05010101002', 30),
+(2, 'Football Team', 'sports', NULL, 'logos/football.png', 'AIMAN MISKIN BIN ABU', '800811023984', '05010101006', '05010101011', '05010101015', '05010101003', 25),
+(3, 'Photography Club', 'clubs_associations', 'A club for students interested in photography and visual storytelling.', 'logos/photography.png', 'ONG LIN', '780513503890', '05010101008', '05010101007', '05010101016', '05010101001', 15),
+(4, 'Prefects Guild', 'others', NULL, 'logos/prefects.png', 'MUALLIM WAN BIN ABU BAKAR', '770809147765', '05010101012', '05010101013', '05010101009', '05010101010', 40),
+(6, 'Silat', 'sports', 'Mengajar murid-murid silat.', 'logos/1747660443_Silat.png', 'Encik Syed', '4235351616', '16164364616', '146143636161', '16146666346136', '16436666116', 52);
 
 -- --------------------------------------------------------
 
@@ -111,8 +142,8 @@ CREATE TABLE `cocu_activities` (
 --
 
 INSERT INTO `cocu_activities` (`id`, `student_ic`, `activity_name`, `activity_category`, `activity_date`, `award`, `activity_location`, `org`, `cert_path`, `created_at`, `ach`) VALUES
-(1, '160406028234', 'Melawat Zoo', 'Lawatan', '2025-05-12', 'Penyertaan', 'Zoo Negara', 'SRIAAWP', 'uploads/certificates/raccoon test.pdf', '2025-05-14 05:52:33', NULL),
-(2, '160406028234', 'eweeq', 'eqwewqe', '2025-05-28', 'eqeqe', 'ewqe', 'eweqe', 'uploads/certificates/raccoon test.pdf', '2025-05-14 05:54:21', NULL);
+(1, '160406028234', 'Melawat Zoo', 'Lawatan', '2025-05-12', 'Penyertaan', 'Zoo Negara', 'SRIAAWP', 'uploads/certificates/zoo.pdf', '2025-05-19 10:49:01', NULL),
+(2, '160406028234', 'eweeq', 'eqwewqe', '2025-05-28', 'eqeqe', 'ewqe', 'eweqe', 'uploads/certificates/zoo.pdf', '2025-05-19 10:49:01', NULL);
 
 -- --------------------------------------------------------
 
@@ -142,10 +173,7 @@ CREATE TABLE `student` (
 --
 
 INSERT INTO `student` (`student_ic`, `student_pass`, `student_fname`, `student_class`, `student_dob`, `student_doe`, `student_address`, `student_emergency`, `guardian_ic`, `guardian_name`, `relationship`, `guardian_address`, `contact_num`, `teacher_incharge`) VALUES
-('020202021298', 'student123', 'Ain Natasha', 2, '2025-02-02', '2025-05-01', 'Kuala Lumpur', '01234567789', '020202107354', 'Nazim Ahmad', 'Father', 'Kuala Lumpur', '01957925647', '910711028452'),
-('160406028234', '$2y$10$weFCXO2tRx7R1PRNNxozmu812GupTehK/Hpyauqc//9H5Rn905oie', 'Mimi Liyana Bint Muhammad Arif', 3, '2016-04-06', '2025-02-17', '9-1 Jalan Putra Sulaiman 8, Taman Putra Sulaiman Ampang, Kuala Lumpur, 68000 Wilayah Persekutuan Kuala Lumpur', '0196530274', '900101029831', 'Muhammad Arif Bin Syukri', 'Father', '9-1 Jalan Putra Sulaiman 8, Taman Putra Sulaiman Ampang, Kuala Lumpur, 68000 Wilayah Persekutuan Kuala Lumpur', '0165432261', '770809147765'),
-('160914023634', '$2y$10$qZkP66qsnHSpsJ.DVTpVCe1Lv4NdQOJirJ.94JhtRv5K8CyGzjJOq', 'SITI AISYAH BINTI NORMAN', 3, '2016-09-14', '2025-02-17', '68, Jalan Imbi, Imbi, 55035 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia', '0132698897', '800211015621', 'NORMAN HAKIMI BIN SYUKRI JEBAT', 'FATHER', '68, Jalan Imbi, Imbi, 55035 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia', '0126021187', '770809147765'),
-('180907132217', '$2y$10$geEdO058u0ZWTS8F2rA2veFh6eEuMrpOstvkVpSEo/Sb8cdDBjVr2', 'Ain Natasha H', 2, '0000-00-00', '0000-00-00', '', '', '', '', '', '', '', '910711028452');
+('160406028234', '$2y$10$weFCXO2tRx7R1PRNNxozmu812GupTehK/Hpyauqc//9H5Rn905oie', 'Mimi Liyana Bint Muhammad Arif', 3, '2016-04-06', '2025-02-17', 'Kuala Lumpur', '0196530274', '900101029831', 'Muhammad Arif Bin Syukri', 'Father', 'Kuala Lumpur', '0165432261', '770809147765');
 
 -- --------------------------------------------------------
 
@@ -170,10 +198,10 @@ CREATE TABLE `teacher` (
 --
 
 INSERT INTO `teacher` (`teacher_ic`, `teacher_pass`, `teacher_fname`, `teacher_contact`, `teacher_email`, `teacher_dob`, `teacher_doe`, `teacher_address`, `class`) VALUES
-('770809147765', '$2y$10$y3qgTGE/PPs6wEfMc7KuueO3ih0aSmrsacImDct4MzYOGjEA2HZ4m', '   MUALLIM WAN BIN ABU BAKAR', '   0132658897', 'muallimwan@gmail.com', '1977-08-09', '2012-02-01', '21st Floor Plaza Sentral Block C Jalan Tun Sambanthan, Kuala Lumpur, 50470 Wilayah Persekutuan Kuala Lumpur', 3),
-('780513503890', '$2y$10$HBdnmEBVZqiUGf3VcRjjWe6np7Dikh4tHvZ6HVf52hcIm7xAJP1sa', 'ONG LIN', '0182331874', '', '0000-00-00', '0000-00-00', '', 3),
-('800811023984', '$2y$10$JSMcFkpvYvQ8Lc4rPfOJcOugdaQrVDpKj0QxgSaNXI.GijvDV9OtW', 'AIMAN MISKIN BIN ABU', '0165320012', '', '0000-00-00', '0000-00-00', '', 5),
-('910711028452', '$2y$10$H8RmUT21kjqekcIIy/IzY.4EKYLfEX3dGTKzz8wBEtiuQiMAHXTju', 'SITI NUR AISYAH BINTI AIMAN', '0196547821', '', '0000-00-00', '0000-00-00', '', 2);
+('770809147765', '$2y$10$y3qgTGE/PPs6wEfMc7KuueO3ih0aSmrsacImDct4MzYOGjEA2HZ4m', 'MUALLIM WAN BIN ABU BAKAR', '0132658897', 'muallimwan@gmail.com', '1977-08-09', '2012-02-01', '21st Floor Plaza Sentral Block C', 3),
+('780513503890', '$2y$10$HBdnmEBVZqiUGf3VcRjjWe6np7Dikh4tHvZ6HVf52hcIm7xAJP1sa', 'ONG LIN', '0182331874', NULL, NULL, NULL, '', 3),
+('800811023984', '$2y$10$JSMcFkpvYvQ8Lc4rPfOJcOugdaQrVDpKj0QxgSaNXI.GijvDV9OtW', 'AIMAN MISKIN BIN ABU', '0165320012', NULL, NULL, NULL, '', 5),
+('910711028452', '$2y$10$H8RmUT21kjqekcIIy/IzY.4EKYLfEX3dGTKzz8wBEtiuQiMAHXTju', 'SITI NUR AISYAH BINTI AIMAN', '0196547821', NULL, NULL, NULL, '', 2);
 
 --
 -- Indexes for dumped tables
@@ -198,18 +226,25 @@ ALTER TABLE `cocurricular`
   ADD PRIMARY KEY (`student_ic`,`cocu_year`);
 
 --
+-- Indexes for table `cocurricular_groups`
+--
+ALTER TABLE `cocurricular_groups`
+  ADD PRIMARY KEY (`group_id`);
+
+--
 -- Indexes for table `cocu_activities`
 --
 ALTER TABLE `cocu_activities`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `student_ic` (`student_ic`);
 
 --
 -- Indexes for table `student`
 --
 ALTER TABLE `student`
   ADD PRIMARY KEY (`student_ic`),
-  ADD KEY `student_ibfk_1` (`teacher_incharge`),
-  ADD KEY `student_ibfk_2` (`student_class`);
+  ADD KEY `student_class` (`student_class`),
+  ADD KEY `teacher_incharge` (`teacher_incharge`);
 
 --
 -- Indexes for table `teacher`
@@ -229,6 +264,12 @@ ALTER TABLE `class`
   MODIFY `class_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
+-- AUTO_INCREMENT for table `cocurricular_groups`
+--
+ALTER TABLE `cocurricular_groups`
+  MODIFY `group_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
 -- AUTO_INCREMENT for table `cocu_activities`
 --
 ALTER TABLE `cocu_activities`
@@ -245,11 +286,17 @@ ALTER TABLE `cocurricular`
   ADD CONSTRAINT `cocurricular_ibfk_1` FOREIGN KEY (`student_ic`) REFERENCES `student` (`student_ic`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
+-- Constraints for table `cocu_activities`
+--
+ALTER TABLE `cocu_activities`
+  ADD CONSTRAINT `cocu_activities_ibfk_1` FOREIGN KEY (`student_ic`) REFERENCES `student` (`student_ic`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Constraints for table `student`
 --
 ALTER TABLE `student`
-  ADD CONSTRAINT `student_ibfk_1` FOREIGN KEY (`teacher_incharge`) REFERENCES `teacher` (`teacher_ic`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `student_ibfk_2` FOREIGN KEY (`student_class`) REFERENCES `class` (`class_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `student_ibfk_1` FOREIGN KEY (`student_class`) REFERENCES `class` (`class_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `student_ibfk_2` FOREIGN KEY (`teacher_incharge`) REFERENCES `teacher` (`teacher_ic`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `teacher`

@@ -49,7 +49,7 @@ if ($student_ic) {
         <div class="nav-links">
           <a href="student_dashboard.php">Papan Pemuka</a>
           <a href="student_profile.php">Profil</a>
-          <a href="#">Papan Kokurikulum</a>
+          <a href="cocurricular_board.php">Papan Kokurikulum</a>
         </div>
       </div>
     </div>

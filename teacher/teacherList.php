@@ -26,7 +26,7 @@ $result = mysqli_query($conn, $sql);
                 <span>SRI AL-AMIN ActivHub</span>
                 <div class="nav-links">
                     <a href="../admin/admin_dashboard.php">Papan Pemuka</a>
-                    <a href="../admin/admin_profile.php">Profil</a>
+                    <a href="../admin/admin_list.php">Profil</a>
                 </div>
             </div>
         </div>

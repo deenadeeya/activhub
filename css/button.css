@@ -1,5 +1,6 @@
 .btn-yellow {
     background-color: #ffeb3b;
+    color: black;
     padding: 10px;
     font-weight: bold;
     border: none;
@@ -9,6 +10,16 @@
 
 .btn-red {
     background-color: #f44336;
+    color: white;
+    padding: 10px;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-darkblue {
+    background-color: #003366;
     color: white;
     padding: 10px;
     font-weight: bold;
@@ -45,4 +56,20 @@
     border: none;
     border-radius: 5px;
     cursor: pointer;
+}
+
+
+.btn-green {
+    background-color: #28a745;
+    color: white;
+    padding: 10px;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+
+.btn-green:hover {
+    background-color: #218838;
 }
