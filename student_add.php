@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once 'connect.php';
+include 'header.php';
+
 if (!isset($_SESSION['user_role']) || !isset($_SESSION['user_ic'])) {
   header("Location: login.php");
   exit();
@@ -90,7 +92,7 @@ $classes = $class_query->fetch_all(MYSQLI_ASSOC);
 
 <head>
   <meta charset="UTF-8" />
-  <title>Add Student - ActivHub</title>
+  <title>Tambah Pelajar - ActivHub</title>
   <link rel="stylesheet" href="css/profile.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
@@ -104,12 +106,7 @@ $classes = $class_query->fetch_all(MYSQLI_ASSOC);
       <img src="../img/logo.png" alt="Logo" />
       <div class="logo-text">
         <span>SRI AL-AMIN ActivHub</span>
-        <div class="nav-links">
-          <a
-            href="<?= ($user_role === 'admin') ? 'admin_dashboard.php' : 'teacher_dashboard.php' ?>">Dashboard</a>
-          <a href="<?= ($user_role === 'admin') ? 'admin_profile.php' : 'teacher_profile.php' ?>">Profile</a>
-          <a href="#">CoCurricular Board</a>
-        </div>
+        <?php include 'navlinks.php'; ?>
       </div>
     </div>
 

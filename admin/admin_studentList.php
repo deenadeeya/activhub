@@ -1,5 +1,7 @@
 <?php
-require_once '..\connect.php';
+session_start();
+require_once '../connect.php';
+include '../header.php';
 
 $sql = "SELECT * FROM student INNER JOIN class ON class.class_id = student.student_class";
 $result = mysqli_query($conn, $sql);
@@ -11,7 +13,7 @@ $result = mysqli_query($conn, $sql);
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SSenarai Pelajar - SRIAAWP ActivHub</title>
+    <title>Senarai Pelajar - SRIAAWP ActivHub</title>
     <link rel="stylesheet" href="../css/teacherList.css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
@@ -25,15 +27,18 @@ $result = mysqli_query($conn, $sql);
             <img src="../img/logo.png" alt="Logo" />
             <div class="logo-text">
                 <span>SRIAAWP ActivHub</span>
-                <div class="nav-links">
-                    <a href="../admin/admin_dashboard.php">Papan Pemuka</a>
-                    <a href="../admin/admin_profile.php">Profil</a>
-                </div>
+                <?php include '../navlinks.php'; ?>
             </div>
         </div>
         <div class="icon-section">
-            <div class="admin-section">
-                <span class="admin-text">Administrator</span>
+            <div class="user-section">
+                <?php
+                if (isset($_SESSION['user_role'])) {
+                    if ($_SESSION['user_role'] === 'admin') {
+                        echo '<span class="admin-text">' . strtoupper($_SESSION['admin_name'] ?? 'ADMIN') . '</span><br>';
+                    } 
+                }
+                ?>
                 <span class="welcome-text">Selamat Kembali!</span>
             </div>
             <span class="material-symbols-outlined icon">notifications</span>
@@ -44,7 +49,7 @@ $result = mysqli_query($conn, $sql);
         <div class="teacher-list-container">
             <div class="teacher-list-box">
                 <div class="title-bar">
-                    <h2>Student List</h2>
+                    <h2>SENARAI MURID</h2>
                     <div class="button-group">
                         <button class="btn-yellow" onclick="window.location.href='admin_add_student.php'">Tambah Pelajar Baru</button>
                         <button class="btn-red" onclick="location.href='admin_dashboard.php'">Batal</button>

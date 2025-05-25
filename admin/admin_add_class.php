@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once '../connect.php';
-
+include '../header.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $class_name = trim($_POST['class_name']);
 
@@ -38,10 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <img src="../img/logo.png" alt="Logo" />
             <div class="logo-text">
                 <span>SRIAAWP ActivHub</span>
-                <div class="nav-links">
-                    <a href="admin_dashboard.php">Papan Pemuka</a>
-                    <a href="admin_list.php">Profil</a>
-                </div>
+                <?php include '../navlinks.php'; ?>
             </div>
         </div>
 

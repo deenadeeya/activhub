@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../connect.php';
+include '../header.php';
 
 if (!isset($_SESSION['user_role']) || !isset($_SESSION['user_ic'])) {
     header("Location: ../login.php");
@@ -68,7 +69,7 @@ $classes = $class_query->fetch_all(MYSQLI_ASSOC);
 
 <head>
     <meta charset="UTF-8" />
-    <title>Add Student - ActivHub</title>
+    <title>Tambah Guru - SRIAAWP ActivHub</title>
     <link rel="stylesheet" href="../css/profile.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
@@ -82,10 +83,7 @@ $classes = $class_query->fetch_all(MYSQLI_ASSOC);
             <img src="../img/logo.png" alt="Logo" />
             <div class="logo-text">
                 <span>SRIAAWP ActivHub</span>
-                <div class="nav-links">
-                    <a href="admin_dashboard.php">Dashboard</a>
-                    <a href="admin_list.php">Profile</a>
-                </div>
+                <?php include '../navlinks.php'; ?>
             </div>
         </div>
 

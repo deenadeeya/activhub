@@ -1,4 +1,7 @@
-/*Applied at
+/*
+has the css for header and container for background
+
+Applied at
 student_cocurricular.php
 admin_dashboard,php
 */
@@ -89,6 +92,11 @@ header {
     font-weight: bold;
 }
 
+.admin-text {
+    font-size: 14px;
+    font-weight: bold;
+}
+
 .welcome-text {
     font-size: 12px;
     opacity: 0.8;
@@ -98,4 +106,32 @@ header {
 .bell {
     font-size: 18px;
     margin-left: 10px;
+}
+
+/*Welcome Section*/
+.welcome-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+    margin-left: 30px;
+}
+
+.welcome-section img {
+    height: 100px;
+    margin: -10px 10px 0;
+}
+
+.welcome-texts {
+    text-align: left;
+}
+
+.welcome-texts h1 {
+    font-size: 24px;
+    margin: 0;
+}
+
+.welcome-texts h2 {
+    font-size: 16px;
+    margin: 5px 0 20px;
 }

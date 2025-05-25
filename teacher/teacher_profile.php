@@ -1,6 +1,8 @@
 <?php
-include '../connect.php';
 session_start();
+include '../connect.php';
+include '../header.php';
+
 
 if (!isset($_SESSION['user_ic']) || $_SESSION['user_role'] !== 'teacher') {
     echo "Unauthorized access. Please <a href='../login.php'>login again</a>.";
@@ -8,6 +10,13 @@ if (!isset($_SESSION['user_ic']) || $_SESSION['user_role'] !== 'teacher') {
 }
 
 $teacher_ic = $_SESSION['user_ic'];
+
+$sql = "SELECT * FROM teacher WHERE teacher_ic = '$teacher_ic'";
+$result = mysqli_query($conn, $sql);
+
+if ($result && mysqli_num_rows($result) > 0) {
+  $teacher = mysqli_fetch_assoc($result);
+}
 
 $query = "SELECT t.*, c.class_name FROM teacher t INNER JOIN class c ON t.class = c.class_id WHERE t.teacher_ic = ?";
 $stmt = $conn->prepare($query);
@@ -40,20 +49,16 @@ if ($result && $result->num_rows > 0) {
 
     <header>
         <div class="logo-section">
-            <img src="../img/logo.png" alt="Logo" />
-            <div class="logo-text">
-                <span>SRIAAWP ActivHub</span>
-                <div class="nav-links">
-                    <a href="../teacher/teacher_dashboard.php">Papan Pemuka</a>
-                    <a href="../teacher/teacher_profile.php">Profil</a>
-                    <a href="#">Papan Kokurikulum</a>
-                </div>
-            </div>
+        <img src="../img/logo.png" alt="Logo" />
+        <div class="logo-text">
+            <span>SRIAAWP ActivHub</span>
+            <?php include '../navlinks.php'; ?>
+        </div>
         </div>
 
         <div class="icon-section">
             <div class="admin-section">
-                <span class="admin-text">Cikgu</span><br>
+                <span class="admin-text"><?php echo strtoupper($teacher['teacher_fname']); ?></span><br>
                 <span class="welcome-text">Selamat Kembali!</span>
             </div>
             <span class="material-symbols-outlined icon">notifications</span>
@@ -61,7 +66,7 @@ if ($result && $result->num_rows > 0) {
     </header>
 
     <div class="container">
-        <h1 class="profile-title">PROFIL</h1>
+        <h1 class="profile-title">PROFIL GURU</h1>
 
         <main class="profile-container">
             <form action="function/teacher_update_info.php" method="POST">

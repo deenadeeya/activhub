@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once '../connect.php';
+include '../header.php';
+
 if (!isset($_SESSION['user_role']) || !isset($_SESSION['user_ic'])) {
     header("Location: login.php");
     exit();
@@ -77,11 +79,7 @@ $classes = $class_query->fetch_all(MYSQLI_ASSOC);
             <img src="../img/logo.png" alt="Logo" />
             <div class="logo-text">
                 <span>SRIAAWP ActivHub</span>
-                <div class="nav-links">
-                    <a href="../admin/admin_dashboard.php">Dashboard</a>
-                    <a href="../admin/admin_profile.php">Profile</a>
-
-                </div>
+                <?php include '../navlinks.php'; ?>
             </div>
         </div>
 

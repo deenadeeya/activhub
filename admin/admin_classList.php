@@ -1,5 +1,6 @@
 <?php
-require_once '..\connect.php';
+require_once '../connect.php';
+include '../header.php';
 
 $sql = "SELECT * FROM class";
 $result = mysqli_query($conn, $sql);
@@ -24,10 +25,7 @@ $result = mysqli_query($conn, $sql);
             <img src="../img/logo.png" alt="Logo" />
             <div class="logo-text">
                 <span>SRIAAWP ActivHub</span>
-                <div class="nav-links">
-                    <a href="admin_dashboard.php">Papan Pemuka</a>
-                    <a href="admin_list.php">Profil</a>
-                </div>
+                <?php include '../navlinks.php'; ?>
             </div>
         </div>
 

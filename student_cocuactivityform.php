@@ -1,6 +1,8 @@
 <?php
 include 'connect.php';
 session_start();
+include 'header.php';
+
 
 // Redirect if not logged in or not a student
 if (!isset($_SESSION['user_ic']) || $_SESSION['user_role'] !== 'student') {
@@ -36,24 +38,38 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['submit_competition'])
     $cert = $_FILES['cert'];
     $cert_path = '';
 
-    if ($cert['error'] === UPLOAD_ERR_OK && pathinfo($cert['name'], PATHINFO_EXTENSION) === 'pdf') {
-        $upload_dir = 'uploads/certificates/';
-        $cert_path = $upload_dir . basename($cert['name']);
-        move_uploaded_file($cert['tmp_name'], $cert_path);
-    }
+  if ($cert['error'] === UPLOAD_ERR_OK && strtolower(pathinfo($cert['name'], PATHINFO_EXTENSION)) === 'pdf') {
+      $upload_dir = 'uploads/certificates/';
+      
+      // Create folder if it doesn't exist
+      if (!is_dir($upload_dir)) {
+          mkdir($upload_dir, 0777, true);
+      }
+      
+      $cert_path = $upload_dir . basename($cert['name']);
+      
+      if (move_uploaded_file($cert['tmp_name'], $cert_path)) {
+          // Upload success - you can save $cert_path to DB here
+      } else {
+          echo "Failed to move uploaded file.";
+      }
+  }
 
     // Save to DB
+    // Save to DB with pending approval status
     $sql = "INSERT INTO cocu_activities (
                 student_ic, activity_name, activity_category, activity_date,
-                award, activity_location, ach,org, cert_path
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)";
+                award, activity_location, ach, org, cert_path, approval_status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')";
 
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssssssss", $student_ic, $activity_name, $activity_category, $activity_date,
-                      $award, $activity_location, $org, $cert_path);
+    $stmt->bind_param("sssssssss", $student_ic, $activity_name, $activity_category, $activity_date,
+                  $award, $activity_location, $ach, $org, $cert_path);
+
+
 
     if ($stmt->execute()) {
-        $success_message = "Competition activity saved successfully.";
+        $success_message = "Borang berjaya dihantar. Sila tunggu kelulusan guru anda.";
     } else {
         $error_message = "Error saving activity: " . $stmt->error;
     }
@@ -66,7 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['submit_competition'])
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kokurikulum Pelajar - SRIAAWP ActivHub</title>
+  <title>Borang Koku Murid - SRIAAWP ActivHub</title>
   <link rel="stylesheet" href="css/profile.css" />
   <link rel="stylesheet" href="css/cocurricular.css" />
   <link rel="stylesheet" href="css/button.css" />
@@ -80,16 +96,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['submit_competition'])
       <img src="../img/logo.png" alt="Logo" />
       <div class="logo-text">
         <span>SRIAAWP ActivHub</span>
-        <div class="nav-links">
-          <a href="student_dashboard.php">Papan Pemuka</a>
-          <a href="student_profile.php">Profil</a>
-          <a href="#">Papan Kokurikulum</a>
-        </div>
+        <?php include 'navlinks.php'; ?>
       </div>
     </div>
     <div class="icon-section">
-      <div class="admin-section">
-        <span class="admin-text"><?php echo strtoupper($row['student_fname']); ?></span><br>
+      <div class="user-section">
+        <?php
+        if (isset($_SESSION['user_role'])) {
+            if ($_SESSION['user_role'] === 'admin') {
+                echo '<span class="admin-text">' . strtoupper($_SESSION['admin_name'] ?? 'ADMIN') . '</span><br>';
+            } elseif ($_SESSION['user_role'] === 'teacher' && !empty($teacher['teacher_fname'])) {
+                echo '<span class="admin-text">' . strtoupper($teacher['teacher_fname']) . '</span><br>';
+            } elseif ($_SESSION['user_role'] === 'student' && !empty($student['student_fname'])) {
+                echo '<span class="admin-text">' . strtoupper($student['student_fname']) . '</span><br>';
+            }
+        }
+        ?>
         <span class="welcome-text">Selamat Kembali!</span>
       </div>
       <span class="material-symbols-outlined icon">notifications</span>
