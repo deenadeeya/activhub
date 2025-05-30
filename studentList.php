@@ -1,12 +1,19 @@
 <?php
-require_once 'connect.php';
 session_start();
+require_once 'connect.php';
+include 'header.php';
 
 if (!isset($_SESSION['user_ic'])) {
     die("Access denied.");
 }
 
 $teacher_ic = $_SESSION['user_ic'];
+
+if (!isset($_SESSION['user_ic']) || $_SESSION['user_role'] !== 'teacher') {
+  header("Location: ../login.php?expired=true");
+  exit();
+}
+
 
 $sql = "SELECT * FROM teacher INNER JOIN class ON class.class_id = teacher.class WHERE teacher_ic = '$teacher_ic'";
 $result = mysqli_query($conn, $sql);
@@ -34,24 +41,31 @@ $result_students = mysqli_query($conn, $sql_students);
 <body>
 
     <header>
+
         <div class="logo-section">
             <img src="../img/logo.png" alt="Logo" />
             <div class="logo-text">
                 <span>SRIAAWP ActivHub</span>
-                <div class="nav-links">
-                    <a href="../teacher/teacher_dashboard.php">Papan Pemuka</a>
-                    <a href="../teacher/teacher_profile.php">Profil</a>
-                </div>
+                <?php include 'navlinks.php'; ?>
             </div>
         </div>
-
         <div class="icon-section">
-            <div class="admin-section">
-                <span class="admin-text">Cikgu</span>
-                <span class="welcome-text">Selamat Kembali!</span>
-            </div>
-            <span class="material-symbols-outlined icon">notifications</span>
-        </div>
+      <div class="user-section">
+        <?php
+        if (isset($_SESSION['user_role'])) {
+            if ($_SESSION['user_role'] === 'admin') {
+                echo '<span class="admin-text">' . strtoupper($_SESSION['admin_name'] ?? 'ADMIN') . '</span><br>';
+            } elseif ($_SESSION['user_role'] === 'teacher' && !empty($teacher['teacher_fname'])) {
+                echo '<span class="admin-text">' . strtoupper($teacher['teacher_fname']) . '</span><br>';
+            } elseif ($_SESSION['user_role'] === 'student' && !empty($student['student_fname'])) {
+                echo '<span class="admin-text">' . strtoupper($student['student_fname']) . '</span><br>';
+            }
+        }
+        ?>
+        <span class="welcome-text">Selamat Kembali!</span>
+      </div>
+      <span class="material-symbols-outlined icon">notifications</span>
+    </div>
     </header>
     <div class="container">
         <div class="teacher-list-container">
@@ -59,7 +73,7 @@ $result_students = mysqli_query($conn, $sql_students);
                 <div class="title-bar">
                     <h2>Senarai Murid</h2>
                     <div class="button-group">
-                        <button class="btn-red" onclick="location.href='teacher/teacher_dashboard.php'">Batal</button>
+                        <button class="btn-red" onclick="location.href='teacher/teacher_dashboard.php'">Kembali</button>
                     </div>
                 </div>
                 <?php

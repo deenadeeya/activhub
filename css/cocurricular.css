@@ -35,6 +35,14 @@
     border: 1px solid black;
     
   }
+
+  .event-cocu {
+    flex: 2;
+    min-width: 600px;
+    min-height: 500px;
+    border: 1px solid black;
+    
+  }
   
   .act-card {
     flex: 1;
@@ -47,6 +55,7 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     transition: transform 0.2s ease;
   }
+  
 
   .activity-form-card {
     flex: 2;
@@ -80,7 +89,7 @@
   }
   
   button[type="submit"] {
-    margin-top: 20px;
+    /*margin-top: 20px;*/
     padding: 10px 20px;
     background-color: #0066cc;
     color: white;

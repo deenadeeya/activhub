@@ -1,6 +1,6 @@
 
 <?php
-require_once 'connect.php';
+require_once '../connect.php';
 
 if (isset($_GET['class_id'])) {
     $class_id = $_GET['class_id'];

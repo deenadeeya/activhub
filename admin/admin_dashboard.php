@@ -1,37 +1,72 @@
+<?php
+session_start();
+include '../connect.php';
+include '../header.php';
+
+// Get current date
+$today = date("Y-m-d");
+
+// Get leaderboard (top 10 students with most activities)
+$leaderboard_query = "
+    SELECT s.student_fname, s.student_class, COUNT(a.id) AS total_activities
+    FROM student s
+    LEFT JOIN cocu_activities a ON s.student_ic = a.student_ic AND a.approval_status = 'approved'
+    GROUP BY s.student_ic
+    ORDER BY total_activities DESC
+    LIMIT 10
+";
+$leaderboard_result = mysqli_query($conn, $leaderboard_query);
+
+// Get events with group names
+$query = "
+    SELECT e.*, g.group_name 
+    FROM events e 
+    LEFT JOIN cocurricular_groups g ON e.group_id = g.group_id
+    WHERE DATE_ADD(e.event_end_date, INTERVAL 3 DAY) >= ?
+    ORDER BY e.event_start_date DESC
+";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("s", $today);
+$stmt->execute();
+$result = $stmt->get_result();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SRIAAWP ActivHub</title>
+  <title>Admin Dashboard - SRIAAWP ActivHub</title>
   <link href="http://fonts.googleapis.com/css?family=Lato:300,400,700" rel="stylesheet" type="text/css">
- 
-  <link rel="stylesheet" href="../css/admin_dash.css" />
+  <link rel="stylesheet" href="../css/dash.css" />
+  <link rel="stylesheet" href="../css/header&bg.css" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
   <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
 </head>
 
 <body>
-
   <header>
     <div class="logo-section">
       <img src="../img/logo.png" alt="Logo" />
       <div class="logo-text">
         <span>SRIAAWP ActivHub</span>
-        <div class="nav-links">
-          <a href="#">Papan Pemuka</a>
-          <a href="admin_list.php">Senarai Admin</a>
-          <a href="../teacher/teacherList.php">Senarai Guru-Guru</a>
-          <a href="admin_studentList">Senarai Murid-Murid</a>
-          <a href="admin_list.php"></a>
-        </div>
+        <?php include '../navlinks.php'; ?>
       </div>
     </div>
-
     <div class="icon-section">
-      <div class="admin-section">
-        <span class="admin-text">Admin</span>
+      <div class="user-section">
+        <?php
+        if (isset($_SESSION['user_role'])) {
+            if ($_SESSION['user_role'] === 'admin') {
+                echo '<span class="admin-text">' . strtoupper($_SESSION['admin_name'] ?? 'ADMIN') . '</span><br>';
+            } elseif ($_SESSION['user_role'] === 'teacher' && !empty($teacher['teacher_fname'])) {
+                echo '<span class="admin-text">' . strtoupper($teacher['teacher_fname']) . '</span><br>';
+            } elseif ($_SESSION['user_role'] === 'student' && !empty($student['student_fname'])) {
+                echo '<span class="admin-text">' . strtoupper($student['student_fname']) . '</span><br>';
+            }
+        }
+        ?>
         <span class="welcome-text">Selamat Kembali!</span>
       </div>
       <span class="material-symbols-outlined icon">notifications</span>
@@ -43,19 +78,19 @@
       <img src="../img/logo.png" alt="Logo">
       <div class="welcome-texts">
         <h1>Selamat Datang ke SRIAAWP ActivHub</h1>
-        <h2>"Pusat Rekod Kokurikulum Murid-Murid SRI AL-AMIN WILAYAH PERSEKUTUAN"</h2>
+        <h2>"Pusat Rekod Kokurikulum Pelajar SRI AL-AMIN WILAYAH PERSEKUTUAN"</h2>
       </div>
     </div>
 
     <br>
     <div class="dashboard-content">
       <div class="left-panel card">
-        <p>HAI,<br>ADMIN</p>
-        <button class="btn-yellow">PETI MASUK</button>
+        <p><div class="salam">السلام عليكم</div>ADMIN</p>
+        <button class="btn-yellow" onclick="window.location.href='../audit_history.php'">BORANG SEJARAH</button>
         <button class="btn-yellow" onclick="location.href='admin_list.php'">SENARAI ADMIN</button>
         <button class="btn-yellow" onclick="location.href='admin_classList.php'">SENARAI KELAS</button>
-        <button class=" btn-yellow" >TAMBAH ACARA KOKURIKULUM</button>
-        <button class="btn-yellow">PAPAN KOKURIKULUM</button>
+        <button class="btn-yellow" onclick="location.href='../add_events.php'">TAMBAH ACARA KOKURIKULUM</button>
+        <button class="btn-yellow" onclick="location.href ='../cocurricular_board.php'">PAPAN KOKURIKULUM</button>
         <form action="../logout.php" method="post">
           <button type="submit" class="btn-red">DAFTAR KELUAR</button>
         </form>
@@ -63,34 +98,45 @@
 
       <div class="right-panel">
         <h3>ACARA KOKURIKULUM</h3>
+        <?php while ($row = $result->fetch_assoc()): ?>
+          <div class="event-item">
+            <strong><?= date("j F Y", strtotime($row['event_start_date'])) ?></strong><br>
+            <?= htmlspecialchars($row['event_name']) ?><br>
+            Tempat: <?= htmlspecialchars($row['event_venue']) ?><br>
+            Pendaftaran: Buka sehingga <?= date("j F", strtotime($row['registration_deadline'])) ?><br>
+            Hubungi: <?= htmlspecialchars($row['contact_number']) ?><br>
+            Penganjur: <?= $row['group_name'] ? htmlspecialchars($row['group_name']) : 'Acara Luar' ?><br>
+            <?php
+            $start = strtotime($row['event_start_date']);
+            $end = strtotime($row['event_end_date']);
+            $now = strtotime($today);
+            $status = "";
+            $color = "";
 
-        <div class="event-item">
-          <strong>12th Januari 2025</strong><br>
-          PERTANDINGAN TAEKWONDO <br>
-          Tempat: SRI AL-AMIN WP<br>
-          Pendaftaran: Buka sehingga 16 Disember<br>
-          Hubungi: 019-xxxxxxxx<br>
-          <button class="btn-status-green">Akan Datang</button>
-          <button class="btn-status-blue">Register Here</button>
-        </div>
+            if ($now < $start) {
+              $status = "Akan Datang";
+              $color = "green";
+            } elseif ($now >= $start && $now <= $end) {
+              $status = "Sedang Berlangsung";
+              $color = "orange";
+            } else {
+              $status = "Telah Selesai";
+              $color = "red";
+            }
+            ?>
+            <p style="color: <?= $color ?>; font-weight: bold;">Status: <?= $status ?></p>
 
-        <div class="event-item">
-          <strong>12 Januari 2025</strong><br>
-          GOTONG ROYONG MEMBERSIHKAN PANTAI <br>
-          Tempat: Pantai Morib<br>
-          Pendaftaran: Buka sehingga 10 November<br>
-          Hubungi: 019-xxxxxxxx<br>
-          <button class="btn-status-red">Telah Berlangsung</button>
-        </div>
-
-        <div class="event-item">
-          <strong>12th January 2025</strong><br>
-          Pertandingan Bola Sepak <br>
-          Lokasi: Stadium Bukit Jalil<br>
-          Pendaftaran: Buka Sehingga 10 November<br>
-          Hubungi: 019-xxxxxxxx<br>
-          <button class="btn-status-red">Telah Berlangsung</button>
-        </div>
+            <?php if ($user_role == 'admin' || $user_role == 'teacher'): ?>
+              <button class="btn-status-blue" onclick="location.href='../event_participants.php?event_id=<?= $row['event_id'] ?>'">Senarai Peserta</button>
+            <?php else: ?>
+              <form action="register_event.php" method="POST">
+                <input type="hidden" name="event_id" value="<?= $row['event_id'] ?>">
+                <input type="hidden" name="student_ic" value="<?= $_SESSION['student_ic'] ?>">
+                <button class="btn-status-blue" type="submit">Daftar</button>
+              </form>
+            <?php endif; ?>
+          </div>
+        <?php endwhile; ?>
       </div>
     </div>
 
@@ -99,15 +145,14 @@
       <div class="manage-users-cards">
         <div class="card">
           <img src="../img/teachers.jpg" alt="Teachers">
-          <p>Guru-Guru</p>
+          <p style="text-align:center;">Guru-Guru</p>
           <a href="../teacher/teacherList.php">
             <button class="btn-yellow">Select</button>
           </a>
         </div>
-
         <div class="card">
           <img src="../img/students.jpg" alt="Students">
-          <p>Murid-Murid</p>
+          <p style="text-align:center;">Murid-Murid</p>
           <a href="admin_studentList.php">
             <button class="btn-yellow">Select</button>
           </a>
@@ -115,40 +160,55 @@
       </div>
     </div>
 
-
     <div class="leaderboard">
-    <h1>LEADERBOARD</h1>
-    <h3>“10 Pelajar Terbaik Dengan Jumlah Aktiviti Kokurikulum Terbanyak Bulan Ini”</h3>
-
-    <table>
-      <thead>
-        <tr>
-          <th class="rank">TEMPAT</th>
-          <th class="student">NAMA MURID</th> 
-          <th class="total">JUMLAH AKTIVITI</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr class="top">
-          <td>1</td>
-          <td>Hafiz Bin Ahmad</td>
-          <td>5</td>
-        </tr>
-        <tr><td>2</td><td>-</td><td>-</td></tr>
-        <tr><td>3</td><td>-</td><td>-</td></tr>
-        <tr><td>4</td><td>-</td><td>-</td></tr>
-        <tr><td>5</td><td>-</td><td>-</td></tr>
-        <tr><td>6</td><td>-</td><td>-</td></tr>
-        <tr><td>7</td><td>-</td><td>-</td></tr>
-        <tr><td>8</td><td>-</td><td>-</td></tr>
-        <tr><td>9</td><td>-</td><td>-</td></tr>
-        <tr><td>10</td><td>-</td><td>-</td></tr>
-      </tbody>
-    </table>
+      <h1>PAPAN PENDAHULU</h1>
+      <h3>“10 Pelajar Terbaik Dengan Jumlah Aktiviti Kokurikulum Terbanyak Bulan Ini”</h3>
+      <table>
+        <thead>
+          <tr>
+            <th class="rank">TEMPAT</th>
+            <th class="student">NAMA MURID</th>
+            <th class="total">JUMLAH AKTIVITI</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php
+          $rank = 1;
+          if ($leaderboard_result && mysqli_num_rows($leaderboard_result) > 0):
+            while ($leader = mysqli_fetch_assoc($leaderboard_result)):
+          ?>
+              <tr<?php if ($rank === 1) echo ' class="top"'; ?>>
+                <td><?php echo $rank; ?></td>
+                <td><?php echo htmlspecialchars($leader['student_fname']); ?></td>
+                <td><?php echo $leader['total_activities']; ?></td>
+                </tr>
+              <?php
+              $rank++;
+            endwhile;
+            while ($rank <= 10):
+              ?>
+                <tr>
+                  <td><?php echo $rank; ?></td>
+                  <td>-</td>
+                  <td>-</td>
+                </tr>
+              <?php
+              $rank++;
+            endwhile;
+          else:
+            for ($rank = 1; $rank <= 10; $rank++):
+              ?>
+                <tr>
+                  <td><?php echo $rank; ?></td>
+                  <td>-</td>
+                  <td>-</td>
+                </tr>
+            <?php endfor;
+          endif; ?>
+        </tbody>
+      </table>
+    </div>
   </div>
-
-  </div>
-
 </body>
 
 </html>

@@ -1,9 +1,15 @@
+<?php
+session_start();
+include '../connect.php';
+include '../header.php';
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Teacher List - SRI AL-AMIN ActivHub</title>
+  <title>Senarai Guru - SRIAAWP ActivHub</title>
   <link rel="stylesheet" href="../css/teacherList.css" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
@@ -16,10 +22,7 @@
     <img src="../img/logo.png" alt="Logo" />
     <div class="logo-text">
       <span>SRIAAWP ActivHub</span>
-      <div class="nav-links">
-        <a href="../admin/admin_dashboard.php">Papan Pemuka</a>
-        <a href="../admin/admin_profile.php">Profil</a>
-      </div>
+      <?php include '../navlinks.php'; ?>
     </div>
   </div>
 

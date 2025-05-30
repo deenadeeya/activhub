@@ -1,16 +1,20 @@
 <?php
-require_once '..\connect.php';
+session_start();
+require_once '../connect.php';
+include '../header.php';
 
 $sql = "SELECT * FROM teacher INNER JOIN class ON class.class_id = teacher.class";
 $result = mysqli_query($conn, $sql);
+
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Teacher List - SRI AL-AMIN ActivHub</title>
+    <title>Senarai Guru - SRI AL-AMIN ActivHub</title>
     <link rel="stylesheet" href="../css/teacherList.css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
@@ -20,25 +24,29 @@ $result = mysqli_query($conn, $sql);
 <body>
 
     <header>
-        <div class="logo-section">
-            <img src="../img/logo.png" alt="Logo" />
-            <div class="logo-text">
-                <span>SRI AL-AMIN ActivHub</span>
-                <div class="nav-links">
-                    <a href="../admin/admin_dashboard.php">Papan Pemuka</a>
-                    <a href="../admin/admin_profile.php">Profil</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="icon-section">
-            <div class="admin-section">
-                <span class="admin-text">Admin</span>
-                <span class="welcome-text">Selamat Kembali!</span>
-            </div>
-            <span class="material-symbols-outlined icon">notifications</span>
-        </div>
-    </header>
+    <div class="logo-section">
+      <img src="../img/logo.png" alt="Logo" />
+      <div class="logo-text">
+        <span>SRIAAWP ActivHub</span>
+        <?php include '../navlinks.php'; ?>
+      </div>
+    </div>
+    <div class="icon-section">
+      <div class="user-section">
+        <?php
+        if (isset($_SESSION['user_role'])) {
+            if ($_SESSION['user_role'] === 'admin') {
+                echo '<span class="admin-text">' . strtoupper($_SESSION['admin_name'] ?? 'ADMIN') . '</span><br>';
+            } elseif ($_SESSION['user_role'] === 'teacher' && !empty($teacher['teacher_fname'])) {
+                echo '<span class="admin-text">' . strtoupper($teacher['teacher_fname']) . '</span><br>';
+            } 
+        }
+        ?>
+        <span class="welcome-text">Selamat Kembali!</span>
+      </div>
+      <span class="material-symbols-outlined icon">notifications</span>
+    </div>
+  </header>
     <div class="container">
         <div class="teacher-list-container">
             <div class="teacher-list-box">

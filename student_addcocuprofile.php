@@ -1,6 +1,7 @@
 <?php
 include 'connect.php';
 session_start();
+include 'header.php';
 
 // Redirect if not logged in or not a student
 if (!isset($_SESSION['user_ic']) || $_SESSION['user_role'] !== 'student') {
@@ -70,7 +71,7 @@ if ($stmt) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Student cocurricular - SRIAAWP ActivHub</title>
+  <title>Profil Koku Murid - SRIAAWP ActivHub</title>
   <link rel="stylesheet" href="css/profile.css" />
   <link rel="stylesheet" href="css/cocurricular.css" />
   <link rel="stylesheet" href="css/button.css" />
@@ -84,16 +85,22 @@ if ($stmt) {
       <img src="../img/logo.png" alt="Logo" />
       <div class="logo-text">
         <span>SRIAAWP ActivHub</span>
-        <div class="nav-links">
-          <a href="student_dashboard.php">Papan Pemuka</a>
-          <a href="student_profile.php">Profil</a>
-          <a href="#">Papan Kokurikulum</a>
-        </div>
+        <?php include 'navlinks.php'; ?>
       </div>
     </div>
     <div class="icon-section">
-      <div class="admin-section">
-        <span class="admin-text"><?php echo strtoupper($row['student_fname']); ?></span><br>
+      <div class="user-section">
+        <?php
+        if (isset($_SESSION['user_role'])) {
+            if ($_SESSION['user_role'] === 'admin') {
+                echo '<span class="admin-text">' . strtoupper($_SESSION['admin_name'] ?? 'ADMIN') . '</span><br>';
+            } elseif ($_SESSION['user_role'] === 'teacher' && !empty($teacher['teacher_fname'])) {
+                echo '<span class="admin-text">' . strtoupper($teacher['teacher_fname']) . '</span><br>';
+            } elseif ($_SESSION['user_role'] === 'student' && !empty($student['student_fname'])) {
+                echo '<span class="admin-text">' . strtoupper($student['student_fname']) . '</span><br>';
+            }
+        }
+        ?>
         <span class="welcome-text">Selamat Kembali!</span>
       </div>
       <span class="material-symbols-outlined icon">notifications</span>
