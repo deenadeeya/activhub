@@ -129,3 +129,50 @@ ul.activities li {
     margin-top: 30px;
     text-align: center;
 }
+
+
+/*for displaying cocurilar group info*/
+.member-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    font-size: 1rem;
+}
+
+.member-table th, .member-table td {
+    border: 1px solid #e0e0e0;
+    padding: 10px 12px;
+    text-align: left;
+}
+
+.member-table th {
+    background: #064789;
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.member-table tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+.member-table tr:hover {
+    background: #e8ebf5;
+}
+
+.member-table .delete-button {
+    background: #e53935;
+    color: #fff;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95em;
+    transition: background 0.2s;
+}
+
+.member-table .delete-button:hover {
+    background: #b71c1c;
+}

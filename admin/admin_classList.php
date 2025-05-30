@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once '../connect.php';
 include '../header.php';
 
@@ -20,24 +21,33 @@ $result = mysqli_query($conn, $sql);
 
 <body>
 
-    <header>
-        <div class="logo-section">
-            <img src="../img/logo.png" alt="Logo" />
-            <div class="logo-text">
-                <span>SRIAAWP ActivHub</span>
-                <?php include '../navlinks.php'; ?>
-            </div>
-        </div>
-
-        <div class="icon-section">
-            <div class="admin-section">
-                <span class="admin-text">admin</span>
-
-                <span class="welcome-text">Selamat Kembali!</span>
-            </div>
-            <span class="material-symbols-outlined icon">notifications</span>
-        </div>
-    </header>
+  <header>
+    <div class="logo-section">
+      <img src="../img/logo.png" alt="Logo" />
+      <div class="logo-text">
+        <span>SRIAAWP ActivHub</span>
+        <?php include '../navlinks.php'; ?>
+      </div>
+    </div>
+    <div class="icon-section">
+      <div class="user-section">
+        <?php
+        if (isset($_SESSION['user_role'])) {
+            if ($_SESSION['user_role'] === 'admin') {
+                echo '<span class="admin-text">' . strtoupper($_SESSION['admin_name'] ?? 'ADMIN') . '</span><br>';
+            } elseif ($_SESSION['user_role'] === 'teacher' && !empty($teacher['teacher_fname'])) {
+                echo '<span class="admin-text">' . strtoupper($teacher['teacher_fname']) . '</span><br>';
+            } elseif ($_SESSION['user_role'] === 'student' && !empty($student['student_fname'])) {
+                echo '<span class="admin-text">' . strtoupper($student['student_fname']) . '</span><br>';
+            }
+        }
+        ?>
+        <span class="welcome-text">Selamat Kembali!</span>
+      </div>
+      <span class="material-symbols-outlined icon">notifications</span>
+    </div>
+  </header>
+  
     <div class="container">
         <div class="teacher-list-container">
             <div class="teacher-list-box">

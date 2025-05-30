@@ -71,7 +71,7 @@ mysqli_query($conn, $update_query);
   </header>
 
     <div class="container">
-    <h1>Sejarah Permohonan Aktiviti Anda</h1>
+    <h1>SEJARAH PERMOHONAN AKTIVITI ANDA</h1>
     <div class="btn-yellow" ><a href="student_dashboard.php">← Kembali ke Papan Pemuka</a></div>
 
     <?php if (mysqli_num_rows($result) > 0): ?>

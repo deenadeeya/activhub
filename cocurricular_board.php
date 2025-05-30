@@ -61,7 +61,7 @@ include 'header.php';
         'uniform_bodies' => 'BADAN BERUNIFORM',
         'sports' => 'SUKAN',
         'clubs_associations' => 'KELAB',
-        'others' => 'LAIN_LAIN'
+        'others' => 'LAIN-LAIN'
       ];
 
       foreach ($types as $key => $title) {

@@ -3,17 +3,31 @@ include 'connect.php';
 session_start();
 include 'header.php';
 
+// Fetch all existing students to populate dropdowns
+$students = [];
+$student_query = $conn->query("SELECT student_ic, student_fname FROM student ORDER BY student_ic");
+if ($student_query) {
+    while ($row = $student_query->fetch_assoc()) {
+        $students[] = $row;
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $groupName = $_POST['group_name'];
     $groupType = $_POST['group_type'];
     $groupDescription = $_POST['group_description'];
     $advisorName = $_POST['advisor_name'];
     $advisorIC = $_POST['advisor_ic'];
-    $presidentIC = $_POST['president_ic'];
-    $vicePresidentIC = $_POST['vice_president_ic'];
-    $secretaryIC = $_POST['secretary_ic'];
-    $treasurerIC = $_POST['treasurer_ic'];
-    $totalMembers = $_POST['total_members'];
+    // For roles, get IC or null if empty
+    $presidentIC = !empty($_POST['president_ic']) ? $_POST['president_ic'] : null;
+    $vicePresidentIC = !empty($_POST['vice_president_ic']) ? $_POST['vice_president_ic'] : null;
+    $secretaryIC = !empty($_POST['secretary_ic']) ? $_POST['secretary_ic'] : null;
+    $viceSecretaryIC = !empty($_POST['vice_secretary_ic']) ? $_POST['vice_secretary_ic'] : null;
+    $treasurerIC = !empty($_POST['treasurer_ic']) ? $_POST['treasurer_ic'] : null;
+    $viceTreasurerIC = !empty($_POST['vice_treasurer_ic']) ? $_POST['vice_treasurer_ic'] : null;
+    $excoY6IC = !empty($_POST['exco_y6_ic']) ? $_POST['exco_y6_ic'] : null;
+    $excoY5IC = !empty($_POST['exco_y5_ic']) ? $_POST['exco_y5_ic'] : null;
+    $excoY4IC = !empty($_POST['exco_y4_ic']) ? $_POST['exco_y4_ic'] : null;
 
     $uploadDir = 'logos/';
     $logoPath = '';
@@ -25,8 +39,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    $stmt = $conn->prepare("INSERT INTO cocurricular_groups (group_name, group_type, group_description, logo_path, advisor_name, advisor_ic, president_ic, vice_president_ic, secretary_ic, treasurer_ic, total_members) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssssssssssi", $groupName, $groupType, $groupDescription, $logoPath, $advisorName, $advisorIC, $presidentIC, $vicePresidentIC, $secretaryIC, $treasurerIC, $totalMembers);
+    $stmt = $conn->prepare("INSERT INTO cocurricular_groups 
+        (group_name, group_type, group_description, logo_path, advisor_name, advisor_ic, 
+         president_ic, vice_president_ic, secretary_ic, vice_secretary_ic, treasurer_ic, vice_treasurer_ic, exco_y6_ic, exco_y5_ic, exco_y4_ic) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+    $stmt->bind_param(
+        "sssssssssssssss",
+        $groupName,
+        $groupType,
+        $groupDescription,
+        $logoPath,
+        $advisorName,
+        $advisorIC,
+        $presidentIC,
+        $vicePresidentIC,
+        $secretaryIC,
+        $viceSecretaryIC,
+        $treasurerIC,
+        $viceTreasurerIC,
+        $excoY6IC,
+        $excoY5IC,
+        $excoY4IC
+    );
 
     if ($stmt->execute()) {
         echo "<script>alert('New group added successfully!'); window.location.href='cocurricular_board.php';</script>";
@@ -50,40 +85,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="css/button.css" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
-   
 </head>
 
 <body>
     <header>
         <div class="logo-section">
-        <img src="../img/logo.png" alt="Logo" />
-        <div class="logo-text">
-            <span>SRIAAWP ActivHub</span>
-            <?php include 'navlinks.php'; ?>
-        </div>
+            <img src="../img/logo.png" alt="Logo" />
+            <div class="logo-text">
+                <span>SRIAAWP ActivHub</span>
+                <?php include 'navlinks.php'; ?>
+            </div>
         </div>
         <div class="icon-section">
-        <div class="user-section">
-            <?php
-            if (isset($_SESSION['user_role'])) {
-                if ($_SESSION['user_role'] === 'admin') {
-                    echo '<span class="admin-text">' . strtoupper($_SESSION['admin_name'] ?? 'ADMIN') . '</span><br>';
-                } elseif ($_SESSION['user_role'] === 'teacher' && !empty($teacher['teacher_fname'])) {
-                    echo '<span class="admin-text">' . strtoupper($teacher['teacher_fname']) . '</span><br>';
-                } elseif ($_SESSION['user_role'] === 'student' && !empty($student['student_fname'])) {
-                    echo '<span class="admin-text">' . strtoupper($student['student_fname']) . '</span><br>';
+            <div class="user-section">
+                <?php
+                if (isset($_SESSION['user_role'])) {
+                    if ($_SESSION['user_role'] === 'admin') {
+                        echo '<span class="admin-text">' . strtoupper($_SESSION['admin_name'] ?? 'ADMIN') . '</span><br>';
+                    } elseif ($_SESSION['user_role'] === 'teacher' && !empty($teacher['teacher_fname'])) {
+                        echo '<span class="admin-text">' . strtoupper($teacher['teacher_fname']) . '</span><br>';
+                    } elseif ($_SESSION['user_role'] === 'student' && !empty($student['student_fname'])) {
+                        echo '<span class="admin-text">' . strtoupper($student['student_fname']) . '</span><br>';
+                    }
                 }
-            }
-            ?>
-            <span class="welcome-text">Selamat Kembali!</span>
-        </div>
-        <span class="material-symbols-outlined icon">notifications</span>
+                ?>
+                <span class="welcome-text">Selamat Kembali!</span>
+            </div>
+            <span class="material-symbols-outlined icon">notifications</span>
         </div>
     </header>
 
     <div class="container">
-        <h1 class="profile-title">TAMBAH PAPAN KOKURIKULUM</h1>
         <div class="group-form-container">
+
+            <div class="header">
+                <div class="spacer"></div>
+                <a class="return-button" href="cocurricular_board.php">KEMBALI</a>
+            </div>
+
+            <h2 style="text-align: center;">Tambah Papan Kokurikulum</h2>
+
             <form method="POST" enctype="multipart/form-data">
                 <label>Nama Kumpulan</label>
                 <input type="text" name="group_name" required style="width:100%; padding:10px; margin:5px 0; border-radius:6px; border:1px solid #ccc;">
@@ -105,25 +146,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label>IC Penasihat</label>
                 <input type="text" name="advisor_ic" required style="width:100%; padding:10px; margin:5px 0; border-radius:6px; border:1px solid #ccc;">
 
-                <label>IC Presiden</label>
-                <input type="text" name="president_ic" required style="width:100%; padding:10px; margin:5px 0; border-radius:6px; border:1px solid #ccc;">
+                <!-- Roles dropdowns -->
+                <?php
+                // Helper function to render a dropdown
+                function renderStudentDropdown($name, $students, $label)
+                {
+                    echo "<label>$label</label>";
+                    echo "<select name='$name' style='width:100%; padding:10px; margin:5px 0; border-radius:6px; border:1px solid #ccc;'>";
+                    echo "<option value=''>-- Pilih Pelajar (Kosongkan jika tiada) --</option>";
+                    foreach ($students as $student) {
+                        $fullName = htmlspecialchars($student['student_fname'] . ' ' . $student['student_lname']);
+                        $ic = htmlspecialchars($student['student_ic']);
+                        echo "<option value='$ic'>$fullName</option>";
+                    }
+                    echo "</select>";
+                }
 
-                <label>IC Naib Presiden</label>
-                <input type="text" name="vice_president_ic" required style="width:100%; padding:10px; margin:5px 0; border-radius:6px; border:1px solid #ccc;">
-
-                <label>IC Setiausaha</label>
-                <input type="text" name="secretary_ic" required style="width:100%; padding:10px; margin:5px 0; border-radius:6px; border:1px solid #ccc;">
-
-                <label>IC Bendahari</label>
-                <input type="text" name="treasurer_ic" required style="width:100%; padding:10px; margin:5px 0; border-radius:6px; border:1px solid #ccc;">
-
-                <label>Jumlah Ahli</label>
-                <input type="number" name="total_members" required min="1" style="width:100%; padding:10px; margin:5px 0; border-radius:6px; border:1px solid #ccc;">
+                renderStudentDropdown('president_ic', $students, 'Presiden');
+                renderStudentDropdown('vice_president_ic', $students, 'Naib Presiden');
+                renderStudentDropdown('secretary_ic', $students, 'Setiausaha');
+                renderStudentDropdown('vice_secretary_ic', $students, 'Naib Setiausaha');
+                renderStudentDropdown('treasurer_ic', $students, 'Bendahari');
+                renderStudentDropdown('vice_treasurer_ic', $students, 'Naib Bendahari');
+                renderStudentDropdown('exco_y6_ic', $students, 'EXCO Tahun 6');
+                renderStudentDropdown('exco_y5_ic', $students, 'EXCO Tahun 5');
+                renderStudentDropdown('exco_y4_ic', $students, 'EXCO Tahun 4');
+                ?>
 
                 <label>Muat Naik Logo (Pilihan)</label>
-                <input type="file" name="logo" accept="image/*" required style="margin:10px 0;">
+                <input type="file" name="logo" accept="image/*" style="margin:10px 0;">
 
-                <button type="submit" style="background-color:#28a745; color:white; font-weight:bold; padding:12px 20px; border:none; border-radius:8px; cursor:pointer; width:100%; margin-top:20px;">Add Group</button>
+                <button type="submit" style="background-color:#28a745; color:white; font-weight:bold; padding:12px 20px; border:none; border-radius:8px; cursor:pointer; width:100%; margin-top:20px;">Tambah Kumpulan</button>
             </form>
         </div>
     </div>
