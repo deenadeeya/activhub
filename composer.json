@@ -1,0 +1,11 @@
+{ 
+    "name": "activhub/excel-import", 
+    "description": "Excel import functionality", 
+    "type": "project", 
+    "require": { 
+        "phpoffice/phpspreadsheet": "^1.28" 
+    }, 
+    "config": { 
+        "platform-check": false 
+    } 
+} 

@@ -12,7 +12,7 @@ if (
     $_SESSION['user_role'] === 'teacher'
 ) {
     $teacher_ic = $_SESSION['user_ic'];
-    $teacher_query = mysqli_query($conn, "SELECT teacher_fname, class FROM teacher WHERE teacher_ic='$teacher_ic'");
+    $teacher_query = mysqli_query($conn, "SELECT teacher_fname FROM teacher WHERE teacher_ic='$teacher_ic'");
     $teacher = mysqli_fetch_assoc($teacher_query);
 }
 
@@ -25,4 +25,3 @@ if (
     $student_query = mysqli_query($conn, "SELECT student_fname FROM student WHERE student_ic='$student_ic'");
     $student = mysqli_fetch_assoc($student_query);
 }
-?>

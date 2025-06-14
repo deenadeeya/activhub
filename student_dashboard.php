@@ -9,11 +9,17 @@ if (!isset($_SESSION['user_ic']) || $_SESSION['user_role'] !== 'student') {
 }
 
 $user_ic = $_SESSION['user_ic'];
-$sql = "SELECT * FROM student WHERE student_ic='$user_ic'";
+$sql = "
+  SELECT s.*, c.class_year 
+  FROM student s
+  JOIN class c ON s.student_class = c.class_id
+  WHERE s.student_ic = '$user_ic'
+";
 $result = mysqli_query($conn, $sql);
 
 if ($result && mysqli_num_rows($result) === 1) {
   $row = mysqli_fetch_assoc($result);
+  $student_year = $row['class_year'];
 } else {
   header("Location: login.php?expired=true");
   exit();
@@ -59,6 +65,39 @@ if (isset($_GET['register']) && isset($_GET['event_id'])) {
     $register_query = "INSERT INTO event_registrations (student_id, event_id) VALUES ('$user_ic', $event_id)";
     mysqli_query($conn, $register_query);
     $registration_success = true;
+
+    // Fetch event details
+    $event_info_query = "SELECT * FROM events WHERE event_id = $event_id";
+    $event_info_result = mysqli_query($conn, $event_info_query);
+    if ($event_info_result && $event = mysqli_fetch_assoc($event_info_result)) {
+        $activity_name = $event['event_name'];
+        $activity_date = $event['event_start_date'];
+        $activity_location = $event['event_venue'];
+        // Compose activity_category: club name + Acara Sekolah or Acara Luar
+        if (isset($event['group_id']) && $event['group_id']) {
+            // Get club/group name
+            $group_id = $event['group_id'];
+            $group_name = '';
+            $group_query = "SELECT group_name FROM cocurricular_groups WHERE group_id = $group_id";
+            $group_result = mysqli_query($conn, $group_query);
+            if ($group_result && $group_row = mysqli_fetch_assoc($group_result)) {
+                $group_name = $group_row['group_name'];
+            }
+            $activity_category = $group_name ? $group_name . ' Acara Sekolah' : 'Acara Sekolah';
+        } else {
+            $activity_category = 'Acara Luar';
+        }
+        $award = $activity_category == 'Acara Luar' ? 'Luar' : 'Sekolah'; // Peringkat (school/national)
+        $ach = 'Penyertaan'; // Achievement (Johan, Naib Johan, etc. or Penyertaan)
+        $approval_status = 'approved'; // or 'pending' if you want teacher approval
+
+        // Insert into cocu_activities
+        $insert_activity = "INSERT INTO cocu_activities 
+            (student_ic, activity_name, activity_date, activity_location, activity_category, award, ach, approval_status) 
+            VALUES 
+            ('$user_ic', '$activity_name', '$activity_date', '$activity_location', '$activity_category', '$award', '$ach', '$approval_status')";
+        mysqli_query($conn, $insert_activity);
+    }
   }
 }
 ?>
@@ -114,7 +153,31 @@ if (isset($_GET['register']) && isset($_GET['event_id'])) {
         ?>
         <span class="welcome-text">Selamat Kembali!</span>
       </div>
-      <span class="material-symbols-outlined icon">notifications</span>
+        <?php
+        // Replace with your actual notification count variable
+        $notif_count = $pending_count;
+        ?>
+
+        <button onclick="location.href='student_formhistory.php'" style="position: relative; background: none; border: none; cursor: pointer;">
+          <span class="material-symbols-outlined icon" style="font-size: 28px; color: white;">
+            notifications
+          </span>
+
+          <?php if ($notif_count > 0): ?>
+            <span style="
+              position: absolute;
+              top: -5px;
+              right: -5px;
+              background: red;
+              color: white;
+              border-radius: 50%;
+              padding: 4px 7px;
+              font-size: 12px;
+            ">
+              <?php echo $notif_count; ?>
+            </span>
+          <?php endif; ?>
+        </button>
     </div>
   </header>
 
@@ -175,6 +238,13 @@ if (isset($_GET['register']) && isset($_GET['event_id'])) {
 
         if ($events_result && mysqli_num_rows($events_result) > 0):
           while ($event = mysqli_fetch_assoc($events_result)):
+          // 🔽 Add this block here to filter events by eligible years
+          $eligible_years = array_map('trim', explode(',', $event['eligible_years'] ?? ''));
+
+          if (!empty($eligible_years[0]) && !in_array((string)$student_year, $eligible_years)) {
+            continue; // Skip this event if student year not allowed
+          }
+
             $start = strtotime($event['event_start_date']);
             $end = strtotime($event['event_end_date']);
             $deadline = $event['registration_deadline'];
@@ -221,7 +291,7 @@ if (isset($_GET['register']) && isset($_GET['event_id'])) {
             <p style="color: <?= $color ?>; font-weight: bold;">Status: <?= $status ?></p>
 
             <?php if ($now < $start && !$is_registered): ?>
-              <button class="btn-status-blue" onclick="confirmRegistration(<?= $event['event_id'] ?>)">Register Here</button>
+              <button class="btn-status-blue" onclick="confirmRegistration(<?= $event['event_id'] ?>)">Daftar Acara</button>
             <?php elseif ($is_registered): ?>
               <span class="btn-status-blue-registered">✅ Telah Berdaftar</span>
             <?php endif; ?>
@@ -239,7 +309,7 @@ if (isset($_GET['register']) && isset($_GET['event_id'])) {
 
     <div class="leaderboard">
       <h1>PAPAN PENDAHULU</h1>
-      <h3>“10 Pelajar Terbaik Dengan Jumlah Aktiviti Kokurikulum Terbanyak Bulan Ini”</h3>
+      <h3>“10 Pelajar Terbaik Dengan Jumlah Aktiviti Kokurikulum Terbanyak Tahun Ini”</h3>
 
       <table>
         <thead>

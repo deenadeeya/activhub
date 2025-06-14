@@ -22,7 +22,6 @@ header {
     align-items: center;
     padding: 10px 20px;
     flex-wrap: wrap;
-    
 }
 
 .logo-section {
@@ -95,7 +94,7 @@ header {
     padding: 20px;
     border-radius: 20px;
     width: 90%;
-    max-height: 600px;
+    max-height: 800px;
     max-width: 700px;
     overflow-y: auto;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -111,6 +110,10 @@ header {
 
 .title-bar h2 {
     margin: 0;
+    color: #fff;
+    font-size: 1.5em;
+    font-weight: 700;
+    letter-spacing: 0.5px;
 }
 
 .button-group {
@@ -138,40 +141,70 @@ header {
 }
 
 .teacher-card {
-    background-color: white;
-    padding: 15px 20px;
-    margin-bottom: 15px;
-    border-radius: 10px;
+    background: #f8fafc;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(6,71,137,0.08);
+    padding: 18px 24px 14px 24px;
+    margin-bottom: 18px;
+    transition: box-shadow 0.2s, transform 0.2s;
+    border-left: 6px solid #064789;
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
     position: relative;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
 }
-
-.teacher-card p {
-    margin: 0;
-    font-size: 14px;
-    line-height: 1.5;
+.teacher-card:hover {
+    box-shadow: 0 6px 24px rgba(6,71,137,0.16);
+    transform: translateY(-2px) scale(1.01);
+    background: #eaf2fb;
 }
-
-.credentials {
+.teacher-avatar {
+    background: #427aa1;
+    color: #fff;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.7em;
     font-weight: bold;
+    margin-right: 12px;
+    flex-shrink: 0;
 }
-
-.edit-button {
-    position: absolute;
-    right: 20px;
-    top: 20px;
-    background-color: white;
-    border: 2px solid #064789;
+.teacher-info {
+    flex: 1;
+}
+.teacher-info strong {
+    font-size: 1.18em;
     color: #064789;
-    padding: 5px 12px;
-    border-radius: 6px;
-    font-weight: bold;
-    cursor: pointer;
 }
-
+.teacher-info .credentials {
+    color: #427aa1;
+    font-size: 0.98em;
+    display: block;
+    margin-bottom: 2px;
+}
+.button-group {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+}
+.edit-button {
+    background: #064789;
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    padding: 7px 18px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(6,71,137,0.08);
+}
 .edit-button:hover {
-    background-color: #064789;
-    color: white;
+    background: #427aa1;
+    box-shadow: 0 4px 16px rgba(6,71,137,0.16);
 }
 
 table tr td .button_save{
@@ -218,4 +251,148 @@ table tr td input{
 }
 table tr td select{
     width: 80%;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.close-modal {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-modal:hover {
+    color: black;
+}
+
+.result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.result-item {
+    padding: 10px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.result-icon {
+    margin-right: 10px;
+    font-size: 20px;
+}
+
+.success {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.warning {
+    background-color: #fff8e1;
+    color: #ff8f00;
+}
+
+.info {
+    background-color: #e3f2fd;
+    color: #1565c0;
+}
+
+.error {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+.error-details {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 5px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.modal-footer {
+    margin-top: 20px;
+    text-align: right;
+}
+
+.modal-close-btn {
+    padding: 8px 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.modal-close-btn:hover {
+    background-color: #45a049;
+}
+
+.btn-blue {
+    background-color: #007bff;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+    margin-right: 60%;
+    text-decoration: none;
+    align-items: center;
+}
+
+.btn-blue:hover {
+    background-color: #0069d9;
+}
+
+.fas {
+    font-size: 14px;
+}
+
+@media (max-width: 600px) {
+    .teacher-card {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 12px 8px;
+    }
+    .teacher-avatar {
+        margin: 0 auto 10px auto;
+    }
+    .teacher-list-box {
+        padding: 10px;
+    }
+    .title-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
 }

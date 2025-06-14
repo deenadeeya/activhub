@@ -26,8 +26,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $registration_deadline = $_POST['registration_deadline'];
     $contact_number = trim($_POST['contact_number']);
     $group_id_input = $_POST['group_id'];
-
     $group_id = ($group_id_input === 'null') ? null : intval($group_id_input);
+    $eligible_years = isset($_POST['eligible_years']) ? implode(',', $_POST['eligible_years']) : null;
 
     // Basic validation
     if (empty($event_name) || empty($event_start_date) || empty($event_end_date) || empty($event_venue)) {
@@ -35,8 +35,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } elseif ($event_start_date > $event_end_date) {
         $error = "Tarikh mula tidak boleh melebihi tarikh tamat.";
     } else {
-        $stmt = $conn->prepare("INSERT INTO events (event_name, event_start_date, event_end_date, event_venue, registration_deadline, contact_number, group_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssssi", $event_name, $event_start_date, $event_end_date, $event_venue, $registration_deadline, $contact_number, $group_id);
+        $stmt = $conn->prepare("INSERT INTO events (event_name, event_start_date, event_end_date, event_venue, registration_deadline, contact_number, group_id, eligible_years) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("ssssssis", $event_name, $event_start_date, $event_end_date, $event_venue, $registration_deadline, $contact_number, $group_id, $eligible_years);
 
         if ($stmt->execute()) {
             $success = "Acara berjaya ditambah!";
@@ -44,6 +44,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $error = "Ralat semasa menambah acara: " . $stmt->error;
         }
     }
+}
+
+// Get teacher's class id for notification count
+$teacher_class_id = null;
+if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'teacher') {
+    $teacher_ic = $_SESSION['user_ic'];
+    $sql_class_id = "SELECT class_id FROM class WHERE head_teacher = '$teacher_ic'";
+    $result_class_id = mysqli_query($conn, $sql_class_id);
+    if ($result_class_id && mysqli_num_rows($result_class_id) > 0) {
+        $row_class_id = mysqli_fetch_assoc($result_class_id);
+        $teacher_class_id = $row_class_id['class_id'];
+    }
+}
+
+// Pending approval count
+$pending_count = 0;
+if ($teacher_class_id) {
+    $pending_query = "
+            SELECT COUNT(*) AS total_pending
+            FROM cocu_activities ca
+            JOIN student s ON ca.student_ic = s.student_ic
+            WHERE ca.approval_status = 'pending' AND s.student_class = ?
+        ";
+    $stmt = $conn->prepare($pending_query);
+    $stmt->bind_param("s", $teacher_class_id);
+    $stmt->execute();
+    $pending_result = $stmt->get_result();
+    $pending_data = $pending_result->fetch_assoc();
+    $pending_count = $pending_data['total_pending'];
 }
 ?>
 
@@ -59,6 +88,67 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <link rel="stylesheet" href="css/button.css" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
   <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+  <style>
+/* Attractive form styling for add_events.php */
+.activity-list select,
+.activity-list input[type="text"],
+.activity-list input[type="date"] {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 1.1rem;
+    border: 1.5px solid #b0b0b0;
+    border-radius: 8px;
+    margin-top: 6px;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+    background: #f8fafc;
+    transition: border 0.2s, box-shadow 0.2s;
+}
+
+.activity-list select:focus,
+.activity-list input[type="text"]:focus,
+.activity-list input[type="date"]:focus {
+    border: 1.5px solid #064789;
+    box-shadow: 0 0 0 2px #cbd2ff;
+    outline: none;
+}
+
+.activity-list label strong {
+    font-size: 1.08rem;
+    color: #064789;
+}
+
+.card.event-cocu {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 4px 24px rgba(6,71,137,0.08);
+    padding: 32px 28px;
+    max-width: 520px;
+    margin: 0 auto;
+}
+
+.activity-list li {
+    margin-bottom: 18px;
+    list-style: none;
+}
+
+.center-stuff {
+    text-align: center;
+    margin-top: 18px;
+}
+
+
+
+@media (max-width: 600px) {
+    .card.event-cocu {
+        padding: 16px 4px;
+        max-width: 98vw;
+    }
+    .activity-list input, .activity-list select {
+        font-size: 1rem;
+    }
+}
+</style>
 </head>
 
 <body>
@@ -108,7 +198,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         ?>
         <span class="welcome-text">Selamat Kembali!</span>
       </div>
-      <span class="material-symbols-outlined icon">notifications</span>
+                <button onclick="location.href='../approve_form.php'" style="position: relative; background: none; border: none; cursor: pointer;">
+                    <span class="material-symbols-outlined icon" style="font-size: 28px; color: white;">
+                    notifications
+                    </span>
+                    <?php if ($pending_count > 0): ?>
+                    <span style="position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; padding: 4px 7px; font-size: 12px;">
+                        <?php echo $pending_count; ?>
+                    </span>
+                    <?php endif; ?>
+                </button>
     </div>
   </header>
 
@@ -160,6 +259,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <li>
                     <label><strong>No Telefon Untuk Dihubungi:</strong>
                         <input type="text" name="contact_number">
+                    </label>
+                    </li>
+
+                    <li>
+                    <label><strong>Tahun Layak Sertai:</strong><br>
+                        <?php
+                        for ($i = 1; $i <= 6; $i++) {
+                            echo "<label style='margin-right: 10px;'><input type='checkbox' name='eligible_years[]' value='{$i}'> Tahun {$i}</label>";
+                        }
+                        ?>
                     </label>
                     </li>
 
