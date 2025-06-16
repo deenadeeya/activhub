@@ -10,8 +10,8 @@ $result = mysqli_query($conn, $sql);
 
 if (mysqli_num_rows($result) > 0) {
     while ($row = mysqli_fetch_assoc($result)) {
-        $message = "<p><strong>Class :</strong> " . $row["class_id"] . "<br><br>
-                        <button class=\"edit-button\" onclick=\"edit('" . $row['class_id'] . "')\">Edit</button>";
+        $message = "<p><strong>Nama Kelas :</strong> " . $row["class_name"] . "<br><br>
+                        <button class=\"edit-button\" onclick=\"edit('" . $row['class_id'] . "')\">Kemas Kini</button>";
     }
 } else {
     $message = "error!!";

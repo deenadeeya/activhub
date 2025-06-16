@@ -2,7 +2,20 @@
 session_start();
 require_once '../connect.php';
 include '../header.php';
+// Auto logout after 30 minutes of inactivity
+if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 1800)) {
+    session_unset();
+    session_destroy();
+    header("Location: ../login.php?expired=1");
+    exit();
+}
+$_SESSION['LAST_ACTIVITY'] = time(); // update last activity time
 
+// Check if user is logged in and is admin
+if (!isset($_SESSION['user_ic']) || !isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
+    header("Location: ../login.php");
+    exit();
+}
 $sql = "SELECT * FROM class";
 $result = mysqli_query($conn, $sql);
 ?>
@@ -21,33 +34,22 @@ $result = mysqli_query($conn, $sql);
 
 <body>
 
-  <header>
-    <div class="logo-section">
-      <img src="../img/logo.png" alt="Logo" />
-      <div class="logo-text">
-        <span>SRIAAWP ActivHub</span>
-        <?php include '../navlinks.php'; ?>
-      </div>
-    </div>
-    <div class="icon-section">
-      <div class="user-section">
-        <?php
-        if (isset($_SESSION['user_role'])) {
-            if ($_SESSION['user_role'] === 'admin') {
-                echo '<span class="admin-text">' . strtoupper($_SESSION['admin_name'] ?? 'ADMIN') . '</span><br>';
-            } elseif ($_SESSION['user_role'] === 'teacher' && !empty($teacher['teacher_fname'])) {
-                echo '<span class="admin-text">' . strtoupper($teacher['teacher_fname']) . '</span><br>';
-            } elseif ($_SESSION['user_role'] === 'student' && !empty($student['student_fname'])) {
-                echo '<span class="admin-text">' . strtoupper($student['student_fname']) . '</span><br>';
-            }
-        }
-        ?>
-        <span class="welcome-text">Selamat Kembali!</span>
-      </div>
-      <span class="material-symbols-outlined icon">notifications</span>
-    </div>
-  </header>
-  
+    <header>
+        <div class="logo-section">
+            <img src="../img/logo.png" alt="Logo" />
+            <div class="logo-text">
+                <span>SRIAAWP ActivHub</span>
+                <?php include '../navlinks.php'; ?>
+            </div>
+        </div>
+        <div class="icon-section">
+            <div class="user-section">
+                <span class="welcome-text">Selamat Kembali!<br> <?= htmlspecialchars($_SESSION['user_ic']) ?></span>
+            </div>
+            <span class="material-symbols-outlined icon">notifications</span>
+        </div>
+    </header>
+
     <div class="container">
         <div class="teacher-list-container">
             <div class="teacher-list-box">
@@ -65,7 +67,7 @@ $result = mysqli_query($conn, $sql);
                             <p>
                                 <strong>Nama Kelas:</strong> <?php echo $row["class_name"] ?><br>
                                 <br>
-                                <button class="edit-button" onclick="edit('<?php echo $row['class_id'] ?>')">Edit</button>
+                                <button class="edit-button" onclick="edit('<?php echo $row['class_id'] ?>')">Kemas Kini</button>
                         </div>
                     <?php }
                 } else { ?>
@@ -154,19 +156,20 @@ $result = mysqli_query($conn, $sql);
     }
 
     function save(id) {
-        var password = document.getElementsByName("edit_password_" + id)[0].value;
-        var c_password = document.getElementsByName("edit_c_password_" + id)[0].value;
-        if (password == "" || c_password == "") {
+        var class_year = document.getElementsByName("edit_year_" + id)[0].value;
+        var class_name = document.getElementsByName("edit_name_" + id)[0].value;
+        var head_teacher = document.getElementsByName("teacher_" + id)[0].value;
+        if (class_year == "" || class_name == "" || head_teacher == "") {
             alert("Please fill all field!");
-        } else if (password != c_password) {
-            alert("Password and Confirm Password must be same!");
         } else {
             const data = {
                 id: id,
-                password: password
+                class_year: class_year,
+                class_name: class_name,
+                head_teacher: head_teacher
             };
 
-            fetch('function/admin_update.php', {
+            fetch('function/class_update.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -176,10 +179,10 @@ $result = mysqli_query($conn, $sql);
                 .then(response => response.json())
                 .then(result => {
                     if (result.status == 1) {
-                        alert("Updated " + id + " successfully!");
+                        alert("Kemas Kini " + class_name + " Berjaya!");
                         document.getElementById(id).innerHTML = result.message;
                     } else {
-                        alert("Updated " + id + " unsuccessfully!");
+                        alert("Kemas Kini " + class_name + " Tidak Berjaya!");
                         document.getElementById(id).innerHTML = result.message;
                     }
 
@@ -187,8 +190,6 @@ $result = mysqli_query($conn, $sql);
                 .catch(error => {
                     console.error('Error:', error);
                 });
-
         }
-
     }
 </script>

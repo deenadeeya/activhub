@@ -1,96 +1,116 @@
 <?php
 include '../connect.php';
 session_start();
+
+// Check if user is logged in and is a teacher
+if (!isset($_SESSION['user_ic']) || $_SESSION['user_role'] !== 'teacher') {
+    $response = [
+        'message' => "Akses Ditolak. Sila Daftar Masuk Sebagai Guru."
+    ];
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
+}
+
 $input = json_decode(file_get_contents("php://input"), true);
-$id = $input['id'];
-
+$id = $input['id'] ?? '';
 $teacher_ic = $_SESSION['user_ic'];
-$sql_teacher = "SELECT * FROM teacher INNER JOIN class ON class.class_id = teacher.class WHERE teacher_ic = '$teacher_ic'";
-$result_teacher = mysqli_query($conn, $sql_teacher);
-$teacher = mysqli_fetch_assoc($result_teacher);
-$teacher_class = $teacher['class'];
 
+// First check if the teacher is a head teacher of any class
+$sql_check = "SELECT class_id FROM class WHERE head_teacher = ?";
+$stmt_check = $conn->prepare($sql_check);
+$stmt_check->bind_param("s", $teacher_ic);
+$stmt_check->execute();
+$result_check = $stmt_check->get_result();
 
-$sql = "SELECT * FROM student WHERE student_class = '$teacher_class' and student_ic='$id'";
-$result = mysqli_query($conn, $sql);
-$message = "Student not found or you do not have permission to access this student.";
+if ($result_check->num_rows == 0) {
+    $response = [
+        'message' => "Akses ditolak. Anda bukan guru kelas."
+    ];
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
+}
 
-if (mysqli_num_rows($result) > 0) {
-    $row = mysqli_fetch_assoc($result);
+$class_data = $result_check->fetch_assoc();
+$teacher_class = $class_data['class_id'];
+
+// Get student information only if they belong to the teacher's class
+$sql = "SELECT * FROM student WHERE student_class = ? AND student_ic = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("ss", $teacher_class, $id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+$message = "Rekod Pelajar tidak ditemui atau anda tidak mempunyai kebenaran untuk mengakses pelajar ini.";
+
+if ($result->num_rows > 0) {
+    $row = $result->fetch_assoc();
+    $gender = $row['gender'] ?? '';
+
+    // Gender options for dropdown
+    $genderOptions = [
+        'Lelaki' => 'Lelaki',
+        'Perempuan' => 'Perempuan'
+    ];
+
+    $genderDropdown = "<select name=\"gender_$id\" required>";
+    foreach ($genderOptions as $value => $label) {
+        $selected = ($value == strtolower($gender)) ? 'selected' : '';
+        $genderDropdown .= "<option value=\"$value\" $selected>$label</option>";
+    }
+    $genderDropdown .= "</select>";
+
     $message = "
-<form>
-    <table>
-        <tr>
-            <td>Name:</td>
-            <td><input type=\"text\" name=\"edit_name_$id\" value=\"" . $row["student_fname"] . "\" required></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>IC:</td>
-            <td><input type=\"text\" value=\"" . $row["student_ic"] . "\" readonly></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>DATE OF BIRTH:</td>
-            <td><input type=\"date\" name=\"student_dob_$id\" value=\"" . $row["student_dob"] . "\" required></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>DATE OF ENTRY:</td>
-            <td><input type=\"date\" name=\"student_doe_$id\" value=\"" . $row["student_doe"] . "\" required></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>ADDRESS:</td>
-            <td><input type=\"text\" name=\"student_address_$id\" value=\"" . $row["student_address"] . "\" required></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>EMERGENCY CONTACT NUMBER:</td>
-            <td><input type=\"text\" name=\"student_emergency_$id\" value=\"" . $row["student_emergency"] . "\" required></td>
-            <td></td>
-        </tr>
-        <tr>
-            <th colspan=\"3\"><br>GUARDIAN INFORMATION<br></th>
-        </tr>
-        <tr>
-            <td>IC NUMBER:</td>
-            <td><input type=\"text\" name=\"guardian_ic_$id\" value=\"" . $row["guardian_ic"] . "\" required></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>FULL NAME:</td>
-            <td><input type=\"text\" name=\"guardian_name_$id\" value=\"" . $row["guardian_name"] . "\" required></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>RELATIONSHIP:</td>
-            <td><input type=\"text\" name=\"relationship_$id\" value=\"" . $row["relationship"] . "\" required></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>ADDRESS:</td>
-            <td><input type=\"text\" name=\"guardian_address_$id\" value=\"" . $row["guardian_address"] . "\" required></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>CONTACT NUMBER:</td>
-            <td><input type=\"text\" name=\"contact_num_$id\" value=\"" . $row["contact_num"] . "\" required></td>
-            <td><button onclick='save($id)'>Save</button></td>
-        </tr>
-        <tr>
-            <td>Password:</td>
-            <td><input type=\"password\" name=\"edit_password_$id\"></td>
-            <td><button onclick=\"cancel($id)\" >Cancel</button></td>
-        </tr>
-    </table>
-</form>";
+    <form>
+        <table>
+            <tr>
+                <td>NAMA PENUH:</td>
+                <td><input type=\"text\" name=\"edit_name_$id\" value=\"" . htmlspecialchars($row["student_fname"]) . "\" required></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>NO.KAD PENGENALAN:</td>
+                <td><input type=\"text\" value=\"" . htmlspecialchars($row["student_ic"]) . "\" readonly></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>NO.MATRIX:</td>
+                <td><input type=\"text\" name=\"matrix_$id\" value=\"" . htmlspecialchars($row["matrix"] ?? '') . "\" required></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>JANTINA:</td>
+                <td>$genderDropdown</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>TARIKH LAHIR:</td>
+                <td><input type=\"date\" name=\"student_dob_$id\" value=\"" . htmlspecialchars($row["student_dob"]) . "\" required></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>TARIKH MASUK:</td>
+                <td><input type=\"date\" name=\"student_doe_$id\" value=\"" . htmlspecialchars($row["student_doe"]) . "\" required></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>NO. TELEFON:</td>
+                <td><input type=\"text\" name=\"contact_num_$id\" value=\"" . htmlspecialchars($row["contact_num"] ?? '') . "\" required></td>
+                <td><button type='button' onclick='save(\"$id\")'>Simpan</button></td>
+            </tr>
+            <tr>
+                <td>KATA LALUAN:</td>
+                <td><input type=\"password\" name=\"edit_password_$id\"></td>
+                <td><button onclick=\"cancel($id)\" >Batal</button></td>
+            </tr>
+        </table>
+    </form>";
 }
 
 $response = [
     'message' => $message
 ];
-
 
 header('Content-Type: application/json');
 echo json_encode($response);

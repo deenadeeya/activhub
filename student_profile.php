@@ -3,15 +3,21 @@ session_start();
 include 'connect.php';
 include 'header.php';
 
-if (!isset($_SESSION['user_ic']) || $_SESSION['user_role'] !== 'student') {
+if (!isset($_SESSION['user_ic'])) {
   header("Location: login.php?expired=true");
   exit;
 }
+
 $student_ic = $_SESSION['user_ic'];
 
-
 if ($student_ic) {
-  $query = "SELECT s.*, c.class_name, t.teacher_fname, t.teacher_email FROM student s JOIN class c ON s.student_class = c.class_id JOIN teacher t ON s.teacher_incharge = t.teacher_ic WHERE s.student_ic = ?";
+  $query = "
+    SELECT s.*, c.class_name, t.teacher_fname, t.teacher_email 
+    FROM student s 
+    JOIN class c ON s.student_class = c.class_id 
+    JOIN teacher t ON c.head_teacher = t.teacher_ic 
+    WHERE s.student_ic = ?
+  ";
 
   $stmt = $conn->prepare($query);
   $stmt->bind_param("s", $student_ic);
@@ -24,6 +30,22 @@ if ($student_ic) {
     echo "No student data found.";
     exit;
   }
+}
+
+// Pending Notification
+$query = "
+  SELECT COUNT(*) AS pending_count 
+  FROM cocu_activities 
+  WHERE student_ic = '$student_ic' 
+    AND approval_status IN ('pending', 'approved', 'rejected')
+    AND notification_read = 0
+";
+
+$result = mysqli_query($conn, $query);
+$pending_count = 0;
+
+if ($result && $row_pending = mysqli_fetch_assoc($result)) {
+  $pending_count = $row_pending['pending_count'];
 }
 ?>
 
@@ -52,20 +74,34 @@ if ($student_ic) {
     </div>
     <div class="icon-section">
       <div class="user-section">
-        <?php
-        if (isset($_SESSION['user_role'])) {
-            if ($_SESSION['user_role'] === 'admin') {
-                echo '<span class="admin-text">' . strtoupper($_SESSION['admin_name'] ?? 'ADMIN') . '</span><br>';
-            } elseif ($_SESSION['user_role'] === 'teacher' && !empty($teacher['teacher_fname'])) {
-                echo '<span class="admin-text">' . strtoupper($teacher['teacher_fname']) . '</span><br>';
-            } elseif ($_SESSION['user_role'] === 'student' && !empty($student['student_fname'])) {
-                echo '<span class="admin-text">' . strtoupper($student['student_fname']) . '</span><br>';
-            }
-        }
-        ?>
+        <span class="admin-text"><?php echo strtoupper($row['student_fname']); ?></span><br>
         <span class="welcome-text">Selamat Kembali!</span>
       </div>
-      <span class="material-symbols-outlined icon">notifications</span>
+      <?php
+        // Replace with your actual notification count variable
+        $notif_count = $pending_count;
+        ?>
+
+        <button onclick="location.href='student_formhistory.php'" style="position: relative; background: none; border: none; cursor: pointer;">
+          <span class="material-symbols-outlined icon" style="font-size: 28px; color: white;">
+            notifications
+          </span>
+
+          <?php if ($notif_count > 0): ?>
+            <span style="
+              position: absolute;
+              top: -5px;
+              right: -5px;
+              background: red;
+              color: white;
+              border-radius: 50%;
+              padding: 4px 7px;
+              font-size: 12px;
+            ">
+              <?php echo $notif_count; ?>
+            </span>
+          <?php endif; ?>
+        </button>
     </div>
   </header>
 
@@ -77,17 +113,25 @@ if ($student_ic) {
       <section class="left-card">
         <div class="profile-header">
           <img src="img/profile.jpg" alt="Student Image" class="profile-pic">
-          <h2>Selemat Datang,<br><span><?php echo strtoupper($row['student_fname']); ?></span></h2>
+          <h2>Selamat Datang,<br><span><?php echo strtoupper($row['student_fname']); ?></span></h2>
         </div>
 
         <div class="info-group">
           <label>NAMA PENUH:</label>
           <input type="text" value="<?php echo strtoupper($row['student_fname']); ?>" readonly>
+          <label>NOMBOR MATRIX:</label>
+          <input type="text" value="<?php echo strtoupper($row['matrix']); ?>" readonly>
           <label>NOMBOR IC:</label>
           <input type="text" value="<?php echo $row['student_ic']; ?>" readonly>
+          <label>JANTINA:</label>
+          <input type="text" value="<?php echo strtoupper($row['gender']); ?>" readonly>
+          <label>NOMBOR TELEFON:</label>
+          <input type="text" value="<?php echo strtoupper($row['contact_num']); ?>" readonly>
           <label>TARIKH LAHIR:</label>
           <input type="text" value="<?php echo date('d M Y', strtotime($row['student_dob'])); ?>" readonly>
-
+          <label>TARIKH MASUK SEKOLAH:</label>
+          <input type="text" value="<?php echo date('d M Y', strtotime($row['student_doe'])); ?>" readonly>
+        </div>
       </section>
 
       <section class="right-card">
@@ -102,7 +146,6 @@ if ($student_ic) {
           <input type="text" value="<?php echo strtoupper($row['teacher_fname']); ?>" readonly>
           <label>EMEL:</label>
           <input type="text" value="<?php echo $row['teacher_email']; ?>" readonly>
-
         </div>
 
         <div class="action-buttons">
@@ -112,13 +155,10 @@ if ($student_ic) {
             <button type="submit" class="red">DAFTAR KELUAR</button>
           </form>
         </div>
-
-        
-
-
       </section>
+
+    </main>
   </div>
-  </main>
 
 </body>
 

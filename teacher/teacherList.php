@@ -3,9 +3,12 @@ session_start();
 require_once '../connect.php';
 include '../header.php';
 
-$sql = "SELECT * FROM teacher INNER JOIN class ON class.class_id = teacher.class";
+// Get all teachers and their class assignments (if any)
+$sql = "SELECT t.*, c.class_id, c.class_name 
+        FROM teacher t 
+        LEFT JOIN class c ON t.teacher_ic = c.head_teacher
+        ORDER BY t.teacher_fname";
 $result = mysqli_query($conn, $sql);
-
 ?>
 
 <!DOCTYPE html>
@@ -22,31 +25,22 @@ $result = mysqli_query($conn, $sql);
 </head>
 
 <body>
-
     <header>
-    <div class="logo-section">
-      <img src="../img/logo.png" alt="Logo" />
-      <div class="logo-text">
-        <span>SRIAAWP ActivHub</span>
-        <?php include '../navlinks.php'; ?>
-      </div>
-    </div>
-    <div class="icon-section">
-      <div class="user-section">
-        <?php
-        if (isset($_SESSION['user_role'])) {
-            if ($_SESSION['user_role'] === 'admin') {
-                echo '<span class="admin-text">' . strtoupper($_SESSION['admin_name'] ?? 'ADMIN') . '</span><br>';
-            } elseif ($_SESSION['user_role'] === 'teacher' && !empty($teacher['teacher_fname'])) {
-                echo '<span class="admin-text">' . strtoupper($teacher['teacher_fname']) . '</span><br>';
-            } 
-        }
-        ?>
-        <span class="welcome-text">Selamat Kembali!</span>
-      </div>
-      <span class="material-symbols-outlined icon">notifications</span>
-    </div>
-  </header>
+        <div class="logo-section">
+            <img src="../img/logo.png" alt="Logo" />
+            <div class="logo-text">
+                <span>SRIAAWP ActivHub</span>
+                <?php include '../navlinks.php'; ?>
+            </div>
+        </div>
+        <div class="icon-section">
+            <div class="user-section">
+                <span class="welcome-text">Selamat Kembali!<br> <?= htmlspecialchars($_SESSION['user_ic']) ?></span>
+            </div>
+            <span class="material-symbols-outlined icon">notifications</span>
+        </div>
+    </header>
+
     <div class="container">
         <div class="teacher-list-container">
             <div class="teacher-list-box">
@@ -54,94 +48,68 @@ $result = mysqli_query($conn, $sql);
                     <h2>Senarai Guru</h2>
                     <div class="button-group">
                         <button class="btn-yellow" onclick="location.href='../admin/admin_add_teacher.php'">Tambah Guru Baru</button>
-                        <button class=" btn-red" onclick="location.href='../admin/admin_dashboard.php'">Batal</button>
+                        <button class="btn-red" onclick="location.href='../admin/admin_dashboard.php'">Batal</button>
                     </div>
                 </div>
-                <?php
-                if (mysqli_num_rows($result) > 0) {
-                    while ($row = mysqli_fetch_assoc($result)) { ?>
-                        <div class="teacher-card" id="<?php echo $row["teacher_ic"] ?>">
-                            <p><strong> <?php echo $row["teacher_fname"] ?> </strong><br>
-                                <strong>Class:</strong> <?php echo $row["class_name"] ?><br>
-                                <span class="credentials">Nombor IC :</span> <?php echo $row["teacher_ic"] ?><br>
-                                <button class="edit-button" onclick="edit(<?php echo $row['teacher_ic'] ?>)">Edit</button>
+
+                <?php if (mysqli_num_rows($result) > 0): ?>
+                    <?php while ($row = mysqli_fetch_assoc($result)): ?>
+                        <div class="teacher-card" id="teacher-<?php echo $row["teacher_ic"]; ?>">
+                            <p>
+                                <strong><?php echo htmlspecialchars($row["teacher_fname"]); ?></strong><br>
+                                <?php if (!empty($row["class_name"])): ?>
+                                    <strong>Kelas:</strong> <?php echo htmlspecialchars($row["class_name"]); ?><br>
+                                <?php else: ?>
+                                    <strong>Kelas:</strong> Tiada Penugasan<br>
+                                <?php endif; ?>
+                                <span class="credentials">No. Kad Pengenalan:</span> <?php echo htmlspecialchars($row["teacher_ic"]); ?><br>
+                                <button class="edit-button" onclick="editTeacher('<?php echo $row["teacher_ic"]; ?>')">Kemas Kini</button>
+                            </p>
                         </div>
-                    <?php }
-                } else { ?>
+                    <?php endwhile; ?>
+                <?php else: ?>
                     <div class="teacher-card">
-                        <p><strong>Tiada Rekod</strong><br>
+                        <p><strong>Tiada Rekod Guru</strong></p>
                     </div>
-                <?php
-                }
-
-                ?>
-
+                <?php endif; ?>
             </div>
         </div>
     </div>
-</body>
 
-</html>
+    <script>
+        function editTeacher(id) {
+            fetch('function/get_teacher.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id: id
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Rangkaian tidak berfungsi');
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === 1) {
+                        document.getElementById(`teacher-${id}`).innerHTML = data.message;
+                    } else {
+                        throw new Error(data.error || 'Ralat tidak diketahui');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ralat: ' + error.message);
+                });
+        }
 
-<script>
-    function edit(id) {
-        const data = {
-            id: id
-        };
-
-        fetch('function/get_teacher.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(result => {
-                document.getElementById(id).innerHTML = result.message;
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-    }
-
-    function cancel(id) {
-        const data = {
-            id: id
-        };
-
-        fetch('function/teacher_list.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(result => {
-                document.getElementById(id).innerHTML = result.message;
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-    }
-
-    function save(id) {
-        var name = document.getElementsByName("edit_name_" + id)[0].value;
-        var password = document.getElementsByName("edit_password_" + id)[0].value;
-        var class1 = document.getElementsByName("class_" + id)[0].value;
-
-        if (name == "" || class1 == "" || id == "") {
-            alert("Please fill all field!");
-        } else {
+        function delete_(id) {
             const data = {
-                id: id,
-                name: name,
-                password: password,
-                class1: class1
+                id: id
             };
 
-            fetch('function/teacher_update.php', {
+            fetch('function/teacher_delete.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -151,19 +119,56 @@ $result = mysqli_query($conn, $sql);
                 .then(response => response.json())
                 .then(result => {
                     if (result.status == 1) {
-                        alert("Updated " + id + " successfully!");
-                        document.getElementById(id).innerHTML = result.message;
+                        alert("Delete " + id + " successfully!");
                     } else {
-                        alert("Updated " + id + " unsuccessfully!");
-                        document.getElementById(id).innerHTML = result.message;
+                        alert("Delete " + id + " unsuccessfully!");
                     }
-
+                    location.href = "teacherList.php";
                 })
                 .catch(error => {
                     console.error('Error:', error);
                 });
-
         }
 
-    }
-</script>
+        function saveTeacher(id) {
+            const formData = {
+                id: id,
+                name: document.querySelector(`input[name="edit_name_${id}"]`).value,
+                uname: document.querySelector(`input[name="edit_uname_${id}"]`).value,
+                password: document.querySelector(`input[name="edit_password_${id}"]`).value,
+                class: document.querySelector(`select[name="class_${id}"]`).value
+            };
+
+            if (!formData.name || !formData.uname) {
+                alert('Sila isi nama dan username!');
+                return;
+            }
+
+            fetch('function/teacher_update.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Rangkaian tidak berfungsi');
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === 1) {
+                        alert('Maklumat guru berjaya dikemaskini!');
+                        location.reload();
+                    } else {
+                        throw new Error(data.error || 'Kemaskini gagal');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ralat: ' + error.message);
+                });
+        }
+    </script>
+</body>
+
+</html>

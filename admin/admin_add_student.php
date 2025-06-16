@@ -30,13 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $student_class = $_POST['student_class'];
     $student_dob = $_POST['student_dob'];
     $student_doe = $_POST['student_doe'];
-    $student_address = $_POST['student_address'];
-    $student_emergency = $_POST['student_emergency'];
-
-    $guardian_ic = $_POST['guardian_ic'];
-    $guardian_name = $_POST['guardian_name'];
-    $relationship = $_POST['relationship'];
-    $guardian_address = $_POST['guardian_address'];
+    $gender = $_POST['gender'];
+    $matrix = $_POST['matrix'];
     $contact_num = $_POST['contact_num'];
 
     $stmt = $conn->prepare("SELECT teacher_ic FROM teacher WHERE class = ?");
@@ -119,25 +114,26 @@ $classes = $class_query->fetch_all(MYSQLI_ASSOC);
             <section class="left-card">
                 <div class="profile-header">
                     <img src="../img/profile.jpg" alt="Student Image" class="profile-pic">
-                    <h2>New Student Entry</h2>
+                    <h2>Pelajar Baharu</h2>
                 </div>
 
                 <div class="info-group">
                     <label>NAMA PENUH:</label>
                     <input type="text" name="student_fname" required>
-                    <label>NOMBOR IC:</label>
+                    <label>NOMBOR KAD PENGENALAN:</label>
                     <input type="text" name="student_ic" required>
+                    <label>NOMBOR MATRIX:</label>
+                    <input type="text" name="matrix">
                     <label>KATA LALUAN:</label>
                     <input type="password" name="student_pass" required>
                     <label>TARIKH LAHIR:</label>
                     <input type="date" name="student_dob">
                     <label>TARIKH DAFTAR DI SEKOLAH:</label>
                     <input type="date" name="student_doe">
-                    <label>ALAMAT:</label>
-                    <input type="text" name="student_address">
-                    <label>NOMBOR TELEFON PENJAGA:</label>
-                    <input type="text" name="student_emergency">
-
+                    <label>JANTINA:</label>
+                    <input type="text" name="gender">
+                    <label>NOMBOR TELEFON:</label>
+                    <input type="text" name="contact_num">
                     <label>KELAS:</label>
                     <select name="student_class" required onchange="getTeacher(this.value)">
                         <option value="">-- Pilih Kelas --</option>
@@ -150,19 +146,7 @@ $classes = $class_query->fetch_all(MYSQLI_ASSOC);
                     <input type="text" id="teacher_name" readonly placeholder="Auto-filled based on class" />
                 </div>
 
-                <h3>MAKLUMAT PENJAGA</h3>
-                <div class="info-group">
-                    <label>NOMBOR IC:</label>
-                    <input type="text" name="guardian_ic">
-                    <label>NAMA PENUH:</label>
-                    <input type="text" name="guardian_name">
-                    <label>HUBUNGAN:</label>
-                    <input type="text" name="relationship">
-                    <label>ALAMAT:</label>
-                    <input type="text" name="guardian_address">
-                    <label>NOMBOR TELEFON:</label>
-                    <input type="text" name="contact_num">
-                </div>
+
 
                 <div class="action-buttons">
                     <button class="yellow" type="submit">SIMPAN</button>

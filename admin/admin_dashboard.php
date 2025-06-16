@@ -1,5 +1,23 @@
 <?php
 session_start();
+
+// Auto logout after 30 minutes of inactivity
+if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 1800)) {
+  session_unset();
+  session_destroy();
+  header("Location: ../login.php?expired=1");
+  exit();
+}
+$_SESSION['LAST_ACTIVITY'] = time(); // update last activity time
+
+// Check if user is logged in and is admin
+if (!isset($_SESSION['user_ic']) || !isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
+  header("Location: ../login.php");
+  exit();
+}
+
+$admin_username = $_SESSION['user_ic'];
+
 include '../connect.php';
 include '../header.php';
 
@@ -56,17 +74,7 @@ $result = $stmt->get_result();
     </div>
     <div class="icon-section">
       <div class="user-section">
-        <?php
-        if (isset($_SESSION['user_role'])) {
-            if ($_SESSION['user_role'] === 'admin') {
-                echo '<span class="admin-text">' . strtoupper($_SESSION['admin_name'] ?? 'ADMIN') . '</span><br>';
-            } elseif ($_SESSION['user_role'] === 'teacher' && !empty($teacher['teacher_fname'])) {
-                echo '<span class="admin-text">' . strtoupper($teacher['teacher_fname']) . '</span><br>';
-            } elseif ($_SESSION['user_role'] === 'student' && !empty($student['student_fname'])) {
-                echo '<span class="admin-text">' . strtoupper($student['student_fname']) . '</span><br>';
-            }
-        }
-        ?>
+        <span class="admin-text"><?php echo strtoupper(htmlspecialchars($admin_username)); ?></span><br>
         <span class="welcome-text">Selamat Kembali!</span>
       </div>
       <span class="material-symbols-outlined icon">notifications</span>
@@ -85,7 +93,8 @@ $result = $stmt->get_result();
     <br>
     <div class="dashboard-content">
       <div class="left-panel card">
-        <p><div class="salam">السلام عليكم</div>ADMIN</p>
+        <p>
+        <div class="salam">السلام عليكم</div><?php echo strtoupper(htmlspecialchars($admin_username)); ?></p>
         <button class="btn-yellow" onclick="window.location.href='../audit_history.php'">BORANG SEJARAH</button>
         <button class="btn-yellow" onclick="location.href='admin_list.php'">SENARAI ADMIN</button>
         <button class="btn-yellow" onclick="location.href='admin_classList.php'">SENARAI KELAS</button>
@@ -126,15 +135,7 @@ $result = $stmt->get_result();
             ?>
             <p style="color: <?= $color ?>; font-weight: bold;">Status: <?= $status ?></p>
 
-            <?php if ($user_role == 'admin' || $user_role == 'teacher'): ?>
-              <button class="btn-status-blue" onclick="location.href='../event_participants.php?event_id=<?= $row['event_id'] ?>'">Senarai Peserta</button>
-            <?php else: ?>
-              <form action="register_event.php" method="POST">
-                <input type="hidden" name="event_id" value="<?= $row['event_id'] ?>">
-                <input type="hidden" name="student_ic" value="<?= $_SESSION['student_ic'] ?>">
-                <button class="btn-status-blue" type="submit">Daftar</button>
-              </form>
-            <?php endif; ?>
+            <button class="btn-status-blue" onclick="location.href='../event_participants.php?event_id=<?= $row['event_id'] ?>'">Senarai Peserta</button>
           </div>
         <?php endwhile; ?>
       </div>

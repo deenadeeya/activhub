@@ -1,3 +1,14 @@
+
+<?php
+if (!isset($user_role)) {
+    if (isset($_SESSION['user_role'])) {
+        $user_role = $_SESSION['user_role'];
+    } else {
+        $user_role = null;
+    }
+}
+?>
+
 <!--This file decides what appears in the header based on user role-->
     <div class="nav-links">
         <?php if ($user_role === 'admin'): ?>
@@ -10,7 +21,8 @@
             <a href="../audit_history.php">Sejarah Borang</a>
             <a href="../teacher/teacher_profile.php">Profil Guru</a>
             <a href="../studentList.php">Senarai Pelajar</a>
-            <a href="../approve_form.php">Senarai Borang</a>
+            <a href="../studentList.php">Tambah Aktiviti Murid</a>
+            <a href="../student_cocuactivityform.php">Senarai Borang</a>
             <a href="../add_events.php">Tambah Acara Kokurikulum</a>
             <a href="../cocurricular_board.php">Papan Kokurikulum</a>
         <?php elseif ($user_role === 'student'): ?>

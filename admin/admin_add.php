@@ -85,7 +85,6 @@ $classes = $class_query->fetch_all(MYSQLI_ASSOC);
 
         <div class="icon-section">
             <div class="admin-section">
-                <span class="admin-text"><?= ucfirst($user_role) ?></span><br>
                 <span class="welcome-text">Selamat Datang, <?= htmlspecialchars($username) ?>!</span>
             </div>
             <span class="material-symbols-outlined icon">notifications</span>
@@ -105,9 +104,9 @@ $classes = $class_query->fetch_all(MYSQLI_ASSOC);
                 <div class="info-group">
                     <label>NAMA PENGGUNA :</label>
                     <input type="text" name="username" required>
-                    <label>Kata Laluan:</label>
+                    <label>KATA LALUAN:</label>
                     <input type="password" name="password" required>
-                    <label>Sahkan Kata Laluan:</label>
+                    <label>SAHKAN KATA LALUAN:</label>
                     <input type="password" name="c_password" required>
 
                     <div class="action-buttons">

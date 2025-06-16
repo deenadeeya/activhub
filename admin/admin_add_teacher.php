@@ -23,10 +23,9 @@ $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 $username = $user['name'] ?? 'User';
 
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
     $teacher_ic = $_POST['teacher_ic'];
+    $teacher_uname = $_POST['teacher_uname'];
     $password = $_POST['teacher_pass'];
     $teacher_pass = password_hash($password, PASSWORD_DEFAULT);
     $teacher_fname = $_POST['teacher_fname'];
@@ -35,30 +34,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $teacher_dob = $_POST['teacher_dob'];
     $teacher_doe = $_POST['teacher_doe'];
     $teacher_address = $_POST['teacher_address'];
-    $class = $_POST['class'];
+    $class_id = !empty($_POST['class']) ? $_POST['class'] : null;
 
-    $stmt = $conn->prepare("INSERT INTO teacher (teacher_ic, teacher_pass, teacher_fname, teacher_contact,teacher_email, teacher_dob, teacher_doe, teacher_address, class) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    // Start transaction
+    $conn->begin_transaction();
 
-    $stmt->bind_param(
-        "ssssssssi",
-        $teacher_ic,
-        $teacher_pass,
-        $teacher_fname,
-        $teacher_contact,
-        $teacher_email,
-        $teacher_dob,
-        $teacher_doe,
-        $teacher_address,
-        $class
-    );
+    try {
+        // Insert teacher (without class assignment)
+        $stmt = $conn->prepare("INSERT INTO teacher (teacher_ic, teacher_uname, teacher_pass, teacher_fname, teacher_contact, teacher_email, teacher_dob, teacher_doe, teacher_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param(
+            "sssssssss",
+            $teacher_ic,
+            $teacher_uname,
+            $teacher_pass,
+            $teacher_fname,
+            $teacher_contact,
+            $teacher_email,
+            $teacher_dob,
+            $teacher_doe,
+            $teacher_address
+        );
 
-    if ($stmt->execute()) {
-        echo "<script>alert('Teacher added successfully'); window.location.href='admin_add_teacher.php';</script>";
-    } else {
-        echo "<script>alert('Failed to add teacher');</script>";
+        if (!$stmt->execute()) {
+            throw new Exception("Failed to add teacher: " . $conn->error);
+        }
+
+        // If a class was selected, assign as head teacher
+        if ($class_id) {
+            $update_sql = "UPDATE class SET head_teacher = ? WHERE class_id = ?";
+            $stmt = $conn->prepare($update_sql);
+            $stmt->bind_param("si", $teacher_ic, $class_id);
+
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to assign class: " . $conn->error);
+            }
+        }
+
+        // Commit transaction
+        $conn->commit();
+        echo "<script>alert('Guru berjaya didaftarkan'); window.location.href='admin_add_teacher.php';</script>";
+    } catch (Exception $e) {
+        $conn->rollback();
+        echo "<script>alert('Gagal mendaftar guru: " . addslashes($e->getMessage()) . "');</script>";
     }
 }
-
 
 $class_query = $conn->query("SELECT * FROM class");
 $classes = $class_query->fetch_all(MYSQLI_ASSOC);
@@ -77,7 +96,6 @@ $classes = $class_query->fetch_all(MYSQLI_ASSOC);
 </head>
 
 <body>
-
     <header>
         <div class="logo-section">
             <img src="../img/logo.png" alt="Logo" />
@@ -89,7 +107,7 @@ $classes = $class_query->fetch_all(MYSQLI_ASSOC);
 
         <div class="icon-section">
             <div class="admin-section">
-                <span class="admin-text"><?= ucfirst($user_role) ?></span><br>
+                <span class="admin-text"><?= strtoupper($user_role) ?></span><br>
                 <span class="welcome-text">Selamat Datang, <?= htmlspecialchars($username) ?>!</span>
             </div>
             <span class="material-symbols-outlined icon">notifications</span>
@@ -108,18 +126,21 @@ $classes = $class_query->fetch_all(MYSQLI_ASSOC);
 
                 <div class="info-group">
                     <label>Nombor IC:</label>
-                    <input type="text" name="teacher_ic" required>
+                    <input type="text" name="teacher_ic" required pattern="\d{12}" title="12 digit nombor IC tanpa '-'">
 
                     <label>Kata Laluan:</label>
-                    <input type="password" name="teacher_pass" required>
+                    <input type="password" name="teacher_pass" required minlength="8">
 
                     <label>Nama Penuh:</label>
                     <input type="text" name="teacher_fname" required>
 
-                    <label>Nombor Telefon:</label>
-                    <input type="text" name="teacher_contact" required>
+                    <label>Nama Pengguna/Username:</label>
+                    <input type="text" name="teacher_uname" required>
 
-                    <label>Emel</label>
+                    <label>Nombor Telefon:</label>
+                    <input type="tel" name="teacher_contact" required pattern="[0-9]{10,11}" title="10 atau 11 digit nombor telefon">
+
+                    <label>Emel:</label>
                     <input type="email" name="teacher_email">
 
                     <label>Tarikh Lahir:</label>
@@ -129,27 +150,24 @@ $classes = $class_query->fetch_all(MYSQLI_ASSOC);
                     <input type="date" name="teacher_doe">
 
                     <label>Alamat:</label>
-                    <input type="text" name="teacher_address">
+                    <textarea name="teacher_address"></textarea>
 
-                    <label>Kelas:</label>
-                    <select name="class" required>
-                        <option value="">-- Select Class --</option>
-                        <?php foreach ($classes as $class): ?>
-                            <option value="<?= $class['class_id'] ?>"><?= $class['class_name'] ?></option>
-                        <?php endforeach; ?>
-                    </select>
-
+                    <label class="no-asterisk">Kelas (Guru Kelas):</labelc>
+                        <select name=" class">
+                            <option value="">-- Tidak Ditugaskan --</option>
+                            <?php foreach ($classes as $class): ?>
+                                <option value="<?= $class['class_id'] ?>"><?= htmlspecialchars($class['class_name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
                 </div>
 
                 <div class="action-buttons">
                     <button class="yellow" type="submit">SIMPAN</button>
-                    <button class="red" type="reset" onclick="location.href='../teacher/teacherList.php'">BATAL</button>
+                    <button class="red" type="button" onclick="location.href='../teacher/teacherList.php'">BATAL</button>
                 </div>
             </section>
-
         </form>
     </div>
-
 </body>
 
 </html>
