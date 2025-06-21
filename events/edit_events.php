@@ -43,6 +43,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $event_start_date = $_POST['event_start_date'];
     $event_end_date = $_POST['event_end_date'];
     $event_venue = trim($_POST['event_venue']);
+    $event_description = trim($_POST['event_description']);
+    $event_type = $_POST['event_type'];
+    $is_mandatory = isset($_POST['is_mandatory']) ? 1 : 0;
+    $visibility = $_POST['visibility'];
+    $max_participants = !empty($_POST['max_participants']) ? intval($_POST['max_participants']) : null;
     $registration_deadline = $_POST['registration_deadline'];
     $contact_number = trim($_POST['contact_number']);
     $group_id_input = $_POST['group_id'];
@@ -54,9 +59,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error = "Sila isi semua ruangan yang wajib.";
     } elseif ($event_start_date > $event_end_date) {
         $error = "Tarikh mula tidak boleh melebihi tarikh tamat.";
+    } elseif ($visibility === 'club_only' && !$group_id) {
+        $error = "Untuk acara khas ahli kelab, sila pilih kelab/persatuan penganjur.";    } elseif ($visibility === 'private') {
+        $error = "Ciri 'Peribadi' masih dalam pembangunan. Sila gunakan 'Ahli Kelab Sahaja' untuk acara terhad.";
     } else {
-        $stmt = $conn->prepare("UPDATE events SET event_name=?, event_start_date=?, event_end_date=?, event_venue=?, registration_deadline=?, contact_number=?, group_id=?, eligible_years=? WHERE event_id=?");
-        $stmt->bind_param("ssssssisi", $event_name, $event_start_date, $event_end_date, $event_venue, $registration_deadline, $contact_number, $group_id, $eligible_years, $event_id);
+        $stmt = $conn->prepare("UPDATE events SET event_name=?, event_start_date=?, event_end_date=?, event_venue=?, event_description=?, event_type=?, is_mandatory=?, visibility=?, max_participants=?, registration_deadline=?, contact_number=?, group_id=?, eligible_years=? WHERE event_id=?");
+        $stmt->bind_param("ssssssississii", $event_name, $event_start_date, $event_end_date, $event_venue, $event_description, $event_type, $is_mandatory, $visibility, $max_participants, $registration_deadline, $contact_number, $group_id, $eligible_years, $event_id);
 
         if ($stmt->execute()) {
             $success = "Acara berjaya dikemaskini!";
@@ -73,15 +81,72 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kemaskini Acara - SRIAAWP ActivHub</title>
-  <link rel="stylesheet" href="../assets/css/header&bg.css" />
+  <title>Kemaskini Acara - SRIAAWP ActivHub</title>  <link rel="stylesheet" href="../assets/css/header&bg.css" />
   <link rel="stylesheet" href="../assets/css/cocurricular.css" />
   <link rel="stylesheet" href="../assets/css/button.css" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
   <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
+  <style>
+/* Attractive form styling for edit_events.php */
+.activity-list select,
+.activity-list input[type="text"],
+.activity-list input[type="date"],
+.activity-list input[type="number"] {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 1.1rem;
+    border: 1.5px solid #b0b0b0;
+    border-radius: 8px;
+    margin-top: 6px;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+    background: #f8fafc;
+    transition: border 0.2s, box-shadow 0.2s;
+}
 
-  
-</head>
+.activity-list select:focus,
+.activity-list input[type="text"]:focus,
+.activity-list input[type="date"]:focus,
+.activity-list input[type="number"]:focus {
+    border: 1.5px solid #064789;
+    box-shadow: 0 0 0 2px #cbd2ff;
+    outline: none;
+}
+
+.activity-list label strong {
+    font-size: 1.08rem;
+    color: #064789;
+}
+
+.card.event-cocu {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 4px 24px rgba(6,71,137,0.08);
+    padding: 32px 28px;
+    max-width: 520px;
+    margin: 0 auto;
+}
+
+.activity-list li {
+    margin-bottom: 18px;
+    list-style: none;
+}
+
+.center-stuff {
+    text-align: center;
+    margin-top: 18px;
+}
+
+@media (max-width: 600px) {
+    .card.event-cocu {
+        padding: 16px 4px;
+        max-width: 98vw;
+    }
+    .activity-list input, .activity-list select {
+        font-size: 1rem;
+    }
+}
+</style></head>
 
 <body>
 <body>    <header>
@@ -142,11 +207,78 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
               <label><strong>Tarikh Tamat*:</strong>
                 <br><input type="date" name="event_end_date" value="<?= $event['event_end_date'] ?>" required>
               </label>
+            </li>            <li>
+              <label><strong>Penerangan Acara:</strong>
+                <textarea name="event_description" rows="3" style="width: 100%; padding: 12px 14px; font-size: 1.1rem; border: 1.5px solid #b0b0b0; border-radius: 8px; margin-top: 6px; margin-bottom: 10px; box-sizing: border-box; background: #f8fafc; resize: vertical;" placeholder="Masukkan penerangan ringkas tentang acara ini..."><?= htmlspecialchars($event['event_description']) ?></textarea>
+              </label>
+            </li>
+
+            <li>
+              <label><strong>Jenis Acara:</strong>
+                <select name="event_type" required>
+                  <option value="other" <?= $event['event_type'] === 'other' ? 'selected' : '' ?>>Lain-lain</option>
+                  <option value="meeting" <?= $event['event_type'] === 'meeting' ? 'selected' : '' ?>>Mesyuarat</option>
+                  <option value="competition" <?= $event['event_type'] === 'competition' ? 'selected' : '' ?>>Pertandingan</option>
+                  <option value="training" <?= $event['event_type'] === 'training' ? 'selected' : '' ?>>Latihan</option>
+                  <option value="social" <?= $event['event_type'] === 'social' ? 'selected' : '' ?>>Sosial</option>
+                </select>
+              </label>
             </li>
 
             <li>
               <label><strong>Tempat*:</strong>
                 <input type="text" name="event_venue" value="<?= htmlspecialchars($event['event_venue']) ?>" required>
+              </label>
+            </li>
+
+            <li>
+              <label><strong>Kelab/Persatuan Penganjur:</strong>
+                <br><select name="group_id" id="group_id">
+                  <option value="null" <?= is_null($event['group_id']) ? 'selected' : '' ?>>— Acara Bukan Sekolah —</option>
+                  <?php foreach ($groups as $group): ?>
+                      <option value="<?= $group['group_id'] ?>" <?= ($group['group_id'] == $event['group_id']) ? 'selected' : '' ?>>
+                          <?= htmlspecialchars($group['group_name']) ?>
+                      </option>
+                  <?php endforeach; ?>
+                </select>
+              </label>
+            </li>
+
+            <li id="club_options" style="<?= !is_null($event['group_id']) ? 'display: block;' : 'display: none;' ?>">
+              <div style="background: #e6f3ff; padding: 15px; border-radius: 8px; border-left: 4px solid #0066cc;">
+                <p style="margin: 0 0 10px 0; font-weight: bold; color: #0066cc;">📋 Pilihan Kelab/Persatuan:</p>
+                
+                <label style="display: block; margin-bottom: 8px;">
+                  <input type="checkbox" name="is_mandatory" id="is_mandatory" style="margin-right: 8px;" <?= $event['is_mandatory'] ? 'checked' : '' ?>>
+                  <strong>Acara ini adalah wajib untuk ahli kelab</strong>
+                  <br><small style="color: #666;">⚠️ Tandakan jika kehadiran adalah WAJIB untuk ahli kelab</small>
+                </label>
+                
+                <div style="background: #fff3cd; padding: 10px; border-radius: 4px; margin-top: 10px; border-left: 3px solid #ffc107;">
+                  <small style="color: #856404;">
+                    <strong>⚠️ Nota:</strong> Auto-pendaftaran tidak boleh diubah setelah acara dibuat untuk mengelakkan konflik data.
+                  </small>
+                </div>
+              </div>
+            </li>
+
+            <li>
+              <label><strong>Siapakah yang boleh melihat acara ini?</strong>
+                <select name="visibility" id="visibility">
+                  <option value="public" <?= $event['visibility'] === 'public' ? 'selected' : '' ?>>🌍 Awam (Semua pelajar boleh lihat dan daftar)</option>
+                  <option value="club_only" <?= $event['visibility'] === 'club_only' ? 'selected' : '' ?>>👥 Ahli Kelab Sahaja (Hanya ahli kelab boleh lihat)</option>
+                  <option value="private" <?= $event['visibility'] === 'private' ? 'selected' : '' ?> disabled>🔒 Peribadi (COMING SOON)</option>
+                </select>
+                <small style="display: block; color: #666; margin-top: 4px;">
+                  <strong>Nota:</strong> "Peribadi" bermaksud hanya pelajar yang didaftarkan secara manual oleh guru sahaja yang boleh melihat acara ini.
+                </small>
+              </label>
+            </li>
+
+            <li>
+              <label><strong>Had Peserta (Opsional):</strong>
+                <input type="number" name="max_participants" min="1" value="<?= $event['max_participants'] ?>" placeholder="Tiada had jika kosong">
+                <small style="display: block; color: #666; margin-top: 4px;">Kosongkan jika tiada had peserta</small>
               </label>
             </li>
 
@@ -163,19 +295,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </li>
 
             <li>
-              <label><strong>Kelab/Persatuan Penganjur:</strong>
-                <br><select name="group_id">
-                  <option value="null" <?= is_null($event['group_id']) ? 'selected' : '' ?>>— Acara Bukan Sekolah —</option>
-                  <?php foreach ($groups as $group): ?>
-                      <option value="<?= $group['group_id'] ?>" <?= ($group['group_id'] == $event['group_id']) ? 'selected' : '' ?>>
-                          <?= htmlspecialchars($group['group_name']) ?>
-                      </option>
-                  <?php endforeach; ?>
-                </select>
-              </label>
-            </li>
-
-            <li>
               <label><strong>Tahun Layak Sertai:</strong><br>
                 <?php for ($i = 1; $i <= 6; $i++): ?>
                     <label style="margin-right: 10px;">
@@ -185,19 +304,71 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <?php endfor; ?>
               </label>
             </li>
-          </ul>
-
-          <div class="center-stuff">
+          </ul>          <div class="center-stuff">
             <button type="submit" class="btn-darkblue">Kemaskini Acara</button>
-            <?php if ($user_role == 'admin'): ?>
-              <a href="admin/admin_dashboard.php" class="btn-red" style="margin-left: 10px;">Kembali</a>
+            <?php if ($_SESSION['user_role'] == 'admin'): ?>
+              <a href="../admin/admin_dashboard.php" class="btn-red" style="margin-left: 10px;">Kembali</a>
             <?php else: ?>
-              <a href="teacher/teacher_dashboard.php" class="btn-red" style="margin-left: 10px;">Kembali</a>
+              <a href="../teacher/teacher_dashboard.php" class="btn-red" style="margin-left: 10px;">Kembali</a>
             <?php endif; ?>
           </div>
         </form>
       </div>
     </section>
   </div>
+
+  <script>
+    // Show/hide club-specific options based on group selection
+    document.getElementById('group_id').addEventListener('change', function() {
+        const groupId = this.value;
+        const clubOptions = document.getElementById('club_options');
+        const visibilitySelect = document.getElementById('visibility');
+        
+        if (groupId !== 'null') {
+            clubOptions.style.display = 'block';
+            // Enable club_only option for visibility
+            visibilitySelect.querySelector('option[value="club_only"]').disabled = false;
+        } else {
+            clubOptions.style.display = 'none';
+            // Disable club_only option and reset if selected
+            const clubOnlyOption = visibilitySelect.querySelector('option[value="club_only"]');
+            clubOnlyOption.disabled = true;
+            if (visibilitySelect.value === 'club_only') {
+                visibilitySelect.value = 'public';
+            }
+            // Uncheck club-specific checkbox
+            document.getElementById('is_mandatory').checked = false;
+        }
+    });
+
+    // Update visibility options based on group selection
+    document.getElementById('visibility').addEventListener('change', function() {
+        const visibility = this.value;
+        const groupSelect = document.getElementById('group_id');
+        
+        if (visibility === 'club_only' && groupSelect.value === 'null') {
+            alert('Sila pilih kelab/persatuan penganjur untuk acara khas ahli kelab.');
+            this.value = 'public';
+        }
+        
+        // Warn about private events (not fully implemented)
+        if (visibility === 'private') {
+            alert('⚠️ AMARAN: Ciri "Peribadi" masih dalam pembangunan. Untuk masa sekarang, gunakan "Ahli Kelab Sahaja" untuk acara terhad.');
+            this.value = 'public';
+        }
+    });
+
+    // Validate form before submission
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const groupId = document.getElementById('group_id').value;
+        const visibility = document.getElementById('visibility').value;
+        
+        if (visibility === 'club_only' && groupId === 'null') {
+            e.preventDefault();
+            alert('Untuk acara khas ahli kelab, sila pilih kelab/persatuan penganjur.');
+            return false;
+        }
+    });
+  </script>
 </body>
 </html>

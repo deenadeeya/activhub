@@ -2,21 +2,21 @@
 require_once '../includes/session_check.php';
 require_once '../config/connect.php';
 
-if (!isset($_SESSION['student_id'])) {
+if (!isset($_SESSION['user_ic']) || $_SESSION['user_role'] !== 'student') {
     // Redirect to login if not logged in
-    header("Location: login.php");
+    header("Location: ../auth/login.php");
     exit();
 }
 
-$student_id = $_SESSION['student_id'];
+$student_ic = $_SESSION['user_ic'];
 
 if (isset($_GET['event_id'])) {
     $event_id = intval($_GET['event_id']);
 
     // Check if student already registered
-    $check_query = "SELECT * FROM event_registrations WHERE student_id = ? AND event_id = ?";
+    $check_query = "SELECT * FROM event_registrations WHERE student_ic = ? AND event_id = ?";
     $stmt = $conn->prepare($check_query);
-    $stmt->bind_param("ii", $student_id, $event_id);
+    $stmt->bind_param("si", $student_ic, $event_id);
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -26,9 +26,9 @@ if (isset($_GET['event_id'])) {
         $_SESSION['message_type'] = "warning";
     } else {
         // Register student
-        $insert_query = "INSERT INTO event_registrations (student_id, event_id) VALUES (?, ?)";
+        $insert_query = "INSERT INTO event_registrations (student_ic, event_id) VALUES (?, ?)";
         $stmt = $conn->prepare($insert_query);
-        $stmt->bind_param("ii", $student_id, $event_id);
+        $stmt->bind_param("si", $student_ic, $event_id);
 
         if ($stmt->execute()) {
             $_SESSION['message'] = "Pendaftaran berjaya!";

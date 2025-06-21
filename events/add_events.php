@@ -29,26 +29,90 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $event_start_date = $_POST['event_start_date'];
     $event_end_date = $_POST['event_end_date'];
     $event_venue = trim($_POST['event_venue']);
+    $event_description = trim($_POST['event_description']);
+    $event_type = $_POST['event_type'];
+    $is_mandatory = isset($_POST['is_mandatory']) ? 1 : 0;
+    $auto_register_members = isset($_POST['auto_register_members']) ? 1 : 0;
+    $visibility = $_POST['visibility'];
+    $max_participants = !empty($_POST['max_participants']) ? intval($_POST['max_participants']) : null;
     $registration_deadline = $_POST['registration_deadline'];
     $contact_number = trim($_POST['contact_number']);
     $group_id_input = $_POST['group_id'];
     $group_id = ($group_id_input === 'null') ? null : intval($group_id_input);
     $eligible_years = isset($_POST['eligible_years']) ? implode(',', $_POST['eligible_years']) : null;
+    $created_by = $_SESSION['user_ic'];
 
     // Basic validation
     if (empty($event_name) || empty($event_start_date) || empty($event_end_date) || empty($event_venue)) {
         $error = "Sila isi semua ruangan yang wajib.";
     } elseif ($event_start_date > $event_end_date) {
         $error = "Tarikh mula tidak boleh melebihi tarikh tamat.";
+    } elseif ($auto_register_members && !$group_id) {
+        $error = "Untuk auto-pendaftaran ahli, sila pilih kelab/persatuan penganjur.";
+    } elseif ($visibility === 'club_only' && !$group_id) {
+        $error = "Untuk acara khas ahli kelab, sila pilih kelab/persatuan penganjur.";
+    } elseif ($visibility === 'private') {
+        $error = "Ciri 'Peribadi' masih dalam pembangunan. Sila gunakan 'Ahli Kelab Sahaja' untuk acara terhad.";
     } else {
-        $stmt = $conn->prepare("INSERT INTO events (event_name, event_start_date, event_end_date, event_venue, registration_deadline, contact_number, group_id, eligible_years) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssssis", $event_name, $event_start_date, $event_end_date, $event_venue, $registration_deadline, $contact_number, $group_id, $eligible_years);
+        // Insert event
+        $stmt = $conn->prepare("INSERT INTO events (event_name, event_start_date, event_end_date, event_venue, event_description, event_type, is_mandatory, auto_register_members, visibility, max_participants, registration_deadline, contact_number, group_id, eligible_years, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("ssssssiisisisss", $event_name, $event_start_date, $event_end_date, $event_venue, $event_description, $event_type, $is_mandatory, $auto_register_members, $visibility, $max_participants, $registration_deadline, $contact_number, $group_id, $eligible_years, $created_by);
 
         if ($stmt->execute()) {
+            $event_id = $conn->insert_id;
+            
+            // Auto-register club members if enabled
+            if ($auto_register_members && $group_id) {
+                $auto_register_query = "
+                    INSERT INTO event_registrations (event_id, student_ic, registration_type)
+                    SELECT ?, scm.student_ic, 'auto'
+                    FROM student_club_membership scm
+                    JOIN student s ON scm.student_ic = s.student_ic
+                    JOIN class c ON s.student_class = c.class_id
+                    WHERE scm.group_id = ?";
+                
+                // Filter by eligible years if specified
+                if ($eligible_years) {
+                    $years_array = explode(',', $eligible_years);
+                    $years_placeholders = str_repeat('?,', count($years_array) - 1) . '?';
+                    $auto_register_query .= " AND c.class_year IN ($years_placeholders)";
+                    
+                    $auto_stmt = $conn->prepare($auto_register_query);
+                    $types = "ii" . str_repeat('i', count($years_array));
+                    $params = array_merge([$event_id, $group_id], $years_array);
+                    $auto_stmt->bind_param($types, ...$params);
+                } else {
+                    $auto_stmt = $conn->prepare($auto_register_query);
+                    $auto_stmt->bind_param("ii", $event_id, $group_id);
+                }
+                
+                $auto_stmt->execute();
+                $auto_registered_count = $auto_stmt->affected_rows;
+                $auto_stmt->close();
+                
+                // Create notifications for auto-registered students
+                if ($auto_registered_count > 0) {
+                    $notification_query = "
+                        INSERT INTO event_notifications (event_id, student_ic, notification_type)
+                        SELECT ?, er.student_ic, 'event_created'
+                        FROM event_registrations er
+                        WHERE er.event_id = ? AND er.registration_type = 'auto'";
+                    
+                    $notif_stmt = $conn->prepare($notification_query);
+                    $notif_stmt->bind_param("ii", $event_id, $event_id);
+                    $notif_stmt->execute();
+                    $notif_stmt->close();
+                }
+            }
+            
             $success = "Acara berjaya ditambah!";
+            if (isset($auto_registered_count) && $auto_registered_count > 0) {
+                $success .= " $auto_registered_count ahli kelab telah didaftarkan secara automatik.";
+            }
         } else {
             $error = "Ralat semasa menambah acara: " . $stmt->error;
         }
+        $stmt->close();
     }
 }
 
@@ -234,6 +298,78 @@ if ($teacher_class_id) {
                     </li>
 
                     <li>
+                    <label><strong>Penerangan Acara:</strong>
+                        <textarea name="event_description" rows="3" style="width: 100%; padding: 12px 14px; font-size: 1.1rem; border: 1.5px solid #b0b0b0; border-radius: 8px; margin-top: 6px; margin-bottom: 10px; box-sizing: border-box; background: #f8fafc; resize: vertical;" placeholder="Masukkan penerangan ringkas tentang acara ini..."></textarea>
+                    </label>
+                    </li>
+
+                    <li>
+                    <label><strong>Jenis Acara:</strong>
+                        <select name="event_type" required>
+                            <option value="other">Lain-lain</option>
+                            <option value="meeting">Mesyuarat</option>
+                            <option value="competition">Pertandingan</option>
+                            <option value="training">Latihan</option>
+                            <option value="social">Sosial</option>
+                        </select>
+                    </label>
+                    </li>
+
+                    <li>
+                    <label><strong>Kelab/Persatuan Penganjur:</strong>
+                        <br><select name="group_id" id="group_id">
+                        <option value="null">— Acara Bukan Sekolah —</option>
+                        <?php foreach ($groups as $group): ?>
+                            <option value="<?= $group['group_id'] ?>"><?= htmlspecialchars($group['group_name']) ?></option>
+                        <?php endforeach; ?>
+                        </select>
+                    </label>
+                    </li>
+
+                    <li id="club_options" style="display: none;">
+                        <div style="background: #e6f3ff; padding: 15px; border-radius: 8px; border-left: 4px solid #0066cc;">
+                            <p style="margin: 0 0 10px 0; font-weight: bold; color: #0066cc;">📋 Pilihan Kelab/Persatuan:</p>
+                            
+                            <label style="display: block; margin-bottom: 12px;">
+                                <input type="checkbox" name="auto_register_members" id="auto_register_members" style="margin-right: 8px;">
+                                <strong>Auto-daftar semua ahli kelab</strong>
+                                <br><small style="color: #666;">✅ Semua ahli kelab akan didaftarkan secara automatik tanpa perlu daftar manual</small>
+                            </label>
+                            
+                            <label style="display: block; margin-bottom: 8px;">
+                                <input type="checkbox" name="is_mandatory" id="is_mandatory" style="margin-right: 8px;">
+                                <strong>Acara ini adalah wajib untuk ahli kelab</strong>
+                                <br><small style="color: #666;">⚠️ Tandakan jika kehadiran adalah WAJIB. Ahli akan tetap perlu didaftar secara manual kecuali anda juga tick "Auto-daftar" di atas.</small>
+                            </label>
+                            
+                            <div style="background: #fff3cd; padding: 10px; border-radius: 4px; margin-top: 10px; border-left: 3px solid #ffc107;">
+                                <small style="color: #856404;">
+                                    <strong>💡 Tip:</strong> Untuk mesyuarat kelab yang wajib, tick kedua-dua pilihan di atas - ahli akan auto-didaftar dan dimaklumkan acara ini adalah wajib.
+                                </small>
+                            </div>
+                        </div>
+                    </li>
+
+                    <li>
+                    <label><strong>Siapakah yang boleh melihat acara ini?</strong>
+                        <select name="visibility" id="visibility">
+                            <option value="public">Awam</option>
+                            <option value="club_only">Ahli Kelab Sahaja</option>
+                        </select>
+                        <small style="display: block; color: #666; margin-top: 4px;">
+                            <strong>Nota:</strong> "Peribadi" bermaksud hanya pelajar yang didaftarkan secara manual oleh guru sahaja yang boleh melihat acara ini.
+                        </small>
+                    </label>
+                    </li>
+
+                    <li>
+                    <label><strong>Had Peserta:</strong>
+                        <input type="number" name="max_participants" min="1" placeholder="Tiada had jika kosong">
+                        <small style="display: block; color: #666; margin-top: 4px;">Kosongkan jika tiada had peserta</small>
+                    </label>
+                    </li>
+
+                    <li>
                     <label><strong>Tarikh Akhir Pendaftaran:</strong>
                         <br><input type="date" name="registration_deadline">
                     </label>
@@ -254,17 +390,6 @@ if ($teacher_class_id) {
                         ?>
                     </label>
                     </li>
-
-                    <li>
-                    <label><strong>Kelab/Persatuan Penganjur:</strong>
-                        <br><select name="group_id">
-                        <option value="null">— Acara Bukan Sekolah —</option>
-                        <?php foreach ($groups as $group): ?>
-                            <option value="<?= $group['group_id'] ?>"><?= htmlspecialchars($group['group_name']) ?></option>
-                        <?php endforeach; ?>
-                        </select>
-                    </label>
-                    </li>
                 </ul>
                 <div class="center-stuff">
                     <button type="submit" class="btn-darkblue">Tambah Acara</button>
@@ -280,6 +405,68 @@ if ($teacher_class_id) {
             </section>
 
     </div>
+
+    <script>
+        // Show/hide club-specific options based on group selection
+        document.getElementById('group_id').addEventListener('change', function() {
+            const groupId = this.value;
+            const clubOptions = document.getElementById('club_options');
+            const visibilitySelect = document.getElementById('visibility');
+            
+            if (groupId !== 'null') {
+                clubOptions.style.display = 'block';
+                // Enable club_only option for visibility
+                visibilitySelect.querySelector('option[value="club_only"]').disabled = false;
+            } else {
+                clubOptions.style.display = 'none';
+                // Disable club_only option and reset if selected
+                const clubOnlyOption = visibilitySelect.querySelector('option[value="club_only"]');
+                clubOnlyOption.disabled = true;
+                if (visibilitySelect.value === 'club_only') {
+                    visibilitySelect.value = 'public';
+                }
+                // Uncheck club-specific checkboxes
+                document.getElementById('auto_register_members').checked = false;
+                document.getElementById('is_mandatory').checked = false;
+            }
+        });
+
+        // Update visibility options based on group selection
+        document.getElementById('visibility').addEventListener('change', function() {
+            const visibility = this.value;
+            const groupSelect = document.getElementById('group_id');
+            
+            if (visibility === 'club_only' && groupSelect.value === 'null') {
+                alert('Sila pilih kelab/persatuan penganjur untuk acara khas ahli kelab.');
+                this.value = 'public';
+            }
+            
+            // Warn about private events (not fully implemented)
+            if (visibility === 'private') {
+                alert('⚠️ AMARAN: Ciri "Peribadi" masih dalam pembangunan. Untuk masa sekarang, gunakan "Ahli Kelab Sahaja" untuk acara terhad.');
+                this.value = 'public';
+            }
+        });
+
+        // Validate form before submission
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const autoRegister = document.getElementById('auto_register_members').checked;
+            const groupId = document.getElementById('group_id').value;
+            const visibility = document.getElementById('visibility').value;
+            
+            if (autoRegister && groupId === 'null') {
+                e.preventDefault();
+                alert('Untuk auto-pendaftaran ahli, sila pilih kelab/persatuan penganjur.');
+                return false;
+            }
+            
+            if (visibility === 'club_only' && groupId === 'null') {
+                e.preventDefault();
+                alert('Untuk acara khas ahli kelab, sila pilih kelab/persatuan penganjur.');
+                return false;
+            }
+        });
+    </script>
 </body>
 
 </html>

@@ -58,11 +58,11 @@ $leaderboard_result = mysqli_query($conn, $leaderboard_query);
 $registration_success = false;
 if (isset($_GET['register']) && isset($_GET['event_id'])) {
   $event_id = intval($_GET['event_id']);
-  $check_query = "SELECT * FROM event_registrations WHERE student_id = '$user_ic' AND event_id = $event_id";
+  $check_query = "SELECT * FROM event_registrations WHERE student_ic = '$user_ic' AND event_id = $event_id";
   $check_result = mysqli_query($conn, $check_query);
 
   if (mysqli_num_rows($check_result) === 0) {
-    $register_query = "INSERT INTO event_registrations (student_id, event_id) VALUES ('$user_ic', $event_id)";
+    $register_query = "INSERT INTO event_registrations (student_ic, event_id) VALUES ('$user_ic', $event_id)";
     mysqli_query($conn, $register_query);
     $registration_success = true;
 
@@ -269,7 +269,7 @@ if (isset($_GET['register']) && isset($_GET['event_id'])) {
             if (!$show) continue;
 
             // Check if user is already registered
-            $check_reg = "SELECT * FROM event_registrations WHERE student_id = '$user_ic' AND event_id = {$event['event_id']}";
+            $check_reg = "SELECT * FROM event_registrations WHERE student_ic = '$user_ic' AND event_id = {$event['event_id']}";
             $reg_result = mysqli_query($conn, $check_reg);
             $is_registered = mysqli_num_rows($reg_result) > 0;
         ?>

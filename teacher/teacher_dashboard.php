@@ -205,11 +205,10 @@ if ($result && $result->num_rows > 0) {
             if (!$show) continue;
 
             $reg_count = 0;
-            if ($teacher_class_id) {
-              $check_participants = "
+            if ($teacher_class_id) {                        $check_participants = "
                             SELECT COUNT(*) AS total
                             FROM event_registrations er
-                            JOIN student s ON er.student_id = s.student_ic
+                            JOIN student s ON er.student_ic = s.student_ic
                             WHERE er.event_id = ? AND s.student_class = ?
                         ";
               $stmt = $conn->prepare($check_participants);
