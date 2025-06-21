@@ -176,7 +176,42 @@ mysqli_query($conn, $update_query);
                     <td><?= htmlspecialchars($row['ach']) ?></td>
                     <td>
                         <?php if (!empty($row['cert_path'])): ?>
-                        <a style="color: #064789;" href="<?= htmlspecialchars($row['cert_path']) ?>" target="_blank">[Sijil]</a>
+                            <?php 
+                            // Handle certificate path - files are in assets/uploads/certificates/
+                            $cert_path = $row['cert_path'];
+                            $filename = basename($cert_path);
+                            
+                            // Try different possible paths including certificates subfolder
+                            $possible_paths = [
+                                '../assets/uploads/certificates/' . $filename,
+                                '../assets/uploads/' . $filename,
+                                '../assets/img/uploads/' . $filename,
+                                '../uploads/certificates/' . $filename,
+                                '../uploads/' . $filename,
+                                $cert_path // original path as fallback
+                            ];
+                            
+                            $found_path = null;
+                            foreach ($possible_paths as $test_path) {
+                                // For file existence check, convert relative path to absolute
+                                if (strpos($test_path, '../') === 0) {
+                                    $absolute_path = __DIR__ . '/' . $test_path;
+                                } else {
+                                    $absolute_path = __DIR__ . '/../' . $test_path;
+                                }
+                                
+                                if (file_exists($absolute_path)) {
+                                    $found_path = $test_path;
+                                    break;
+                                }
+                            }
+                            
+                            if ($found_path): ?>
+                                <a style="color: #064789;" href="<?= htmlspecialchars($found_path) ?>" target="_blank">[Sijil]</a>
+                            <?php else: ?>
+                                <!-- Default to certificates folder -->
+                                <a style="color: #064789;" href="<?= htmlspecialchars('../assets/uploads/certificates/' . $filename) ?>" target="_blank">[Sijil]</a>
+                            <?php endif; ?>
                         <?php else: ?>
                         Tiada
                         <?php endif; ?>

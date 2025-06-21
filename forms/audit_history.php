@@ -126,9 +126,10 @@ if ($user_role === 'teacher') {
 
 // Prepare and execute the appropriate query based on user role
 if ($user_role === 'teacher' && $teacherClass) {
-    $query = "SELECT a.*, s.student_fname, s.student_class
+    $query = "SELECT a.*, s.student_fname, s.student_class, t.teacher_fname as approved_by_name
               FROM cocu_activities a
               JOIN student s ON a.student_ic = s.student_ic
+              LEFT JOIN teacher t ON a.approved_by = t.teacher_ic
               WHERE s.student_class = ?
               ORDER BY a.created_at DESC";
 
@@ -137,9 +138,10 @@ if ($user_role === 'teacher' && $teacherClass) {
     $stmt->execute();
     $result = $stmt->get_result();
 } elseif ($user_role === 'admin') {
-    $query = "SELECT a.*, s.student_fname, s.student_class
+    $query = "SELECT a.*, s.student_fname, s.student_class, t.teacher_fname as approved_by_name
               FROM cocu_activities a
               JOIN student s ON a.student_ic = s.student_ic
+              LEFT JOIN teacher t ON a.approved_by = t.teacher_ic
               ORDER BY a.created_at DESC";
 
     $result = mysqli_query($conn, $query);
@@ -198,7 +200,7 @@ if ($user_role === 'teacher') {
 <body>
     <header>
         <div class="logo-section">
-            <img src="../img/logo.png" alt="Logo" />
+            <img src="../assets/img/logo.png" alt="Logo" />
             <div class="logo-text">
                 <span>SRIAAWP ActivHub</span>
                 <?php include '../includes/navlinks.php'; ?>
@@ -265,13 +267,48 @@ if ($user_role === 'teacher') {
                             <td><?= htmlspecialchars($row['award']) ?></td>
                             <td>
                                 <?php if (!empty($row['cert_path'])): ?>
-                                    <a href="<?= htmlspecialchars($row['cert_path']) ?>" target="_blank">[Sijil]</a>
+                                    <?php 
+                                    // Handle certificate path - files are in assets/uploads/certificates/
+                                    $cert_path = $row['cert_path'];
+                                    $filename = basename($cert_path);
+                                    
+                                    // Try different possible paths including certificates subfolder
+                                    $possible_paths = [
+                                        '../assets/uploads/certificates/' . $filename,
+                                        '../assets/uploads/' . $filename,
+                                        '../assets/img/uploads/' . $filename,
+                                        '../uploads/certificates/' . $filename,
+                                        '../uploads/' . $filename,
+                                        $cert_path // original path as fallback
+                                    ];
+                                    
+                                    $found_path = null;
+                                    foreach ($possible_paths as $test_path) {
+                                        // For file existence check, convert relative path to absolute
+                                        if (strpos($test_path, '../') === 0) {
+                                            $absolute_path = __DIR__ . '/' . $test_path;
+                                        } else {
+                                            $absolute_path = __DIR__ . '/../' . $test_path;
+                                        }
+                                        
+                                        if (file_exists($absolute_path)) {
+                                            $found_path = $test_path;
+                                            break;
+                                        }
+                                    }
+                                    
+                                    if ($found_path): ?>
+                                        <a href="<?= htmlspecialchars($found_path) ?>" target="_blank">[Sijil]</a>
+                                    <?php else: ?>
+                                        <!-- Default to certificates folder -->
+                                        <a href="<?= htmlspecialchars('../assets/uploads/certificates/' . $filename) ?>" target="_blank">[Sijil]</a>
+                                    <?php endif; ?>
                                 <?php else: ?>
                                     Tiada
                                 <?php endif; ?>
                             </td>
                             <td><?= ucfirst($row['approval_status']) ?></td>
-                            <td><?= htmlspecialchars($row['approved_by'] ?? '-') ?></td>
+                            <td><?= htmlspecialchars($row['approved_by_name'] ?? '-') ?></td>
                             <td><?= $row['approved_at'] ? date('Y-m-d H:i', strtotime($row['approved_at'])) : '-' ?></td>
                             <td>
                                 <?php if (in_array($user_role, ['teacher', 'admin']) && $row['approval_status'] === 'rejected'): ?>
