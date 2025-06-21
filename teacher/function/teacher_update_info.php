@@ -1,6 +1,6 @@
 <?php
 require_once '../connect.php';
-session_start();
+require_once '../../includes/session_check.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 

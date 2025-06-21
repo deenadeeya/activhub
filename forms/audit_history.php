@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once '../includes/session_check.php';
 
 // Security headers
 header("X-Frame-Options: DENY");
@@ -15,8 +15,8 @@ if (!isset($_SESSION['created'])) {
     $_SESSION['created'] = time();
 }
 
-include 'connect.php';
-include 'header.php';
+include '../config/connect.php';
+include '../includes/header.php';
 
 // Check authentication and authorization
 if (!isset($_SESSION['user_ic']) || !in_array($_SESSION['user_role'], ['teacher', 'admin'])) {
@@ -188,11 +188,11 @@ if ($user_role === 'teacher') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sejarah Borang Kokurikulum - SRIAAWP ActivHub</title>
-    <link rel="stylesheet" href="css/header&bg.css" />
-    <link rel="stylesheet" href="css/cocurricular.css" />
-    <link rel="stylesheet" href="css/button.css" />
+    <link rel="stylesheet" href="../assets/css/header&bg.css" />
+    <link rel="stylesheet" href="../assets/css/cocurricular.css" />
+    <link rel="stylesheet" href="../assets/css/button.css" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
 </head>
 
 <body>
@@ -201,7 +201,7 @@ if ($user_role === 'teacher') {
             <img src="../img/logo.png" alt="Logo" />
             <div class="logo-text">
                 <span>SRIAAWP ActivHub</span>
-                <?php include 'navlinks.php'; ?>
+                <?php include '../includes/navlinks.php'; ?>
             </div>
         </div>
         <div class="icon-section">

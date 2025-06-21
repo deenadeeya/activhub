@@ -1,7 +1,7 @@
 <?php
-session_start();
-include 'connect.php';
-include 'header.php';
+require_once '../includes/session_check.php';
+include '../config/connect.php';
+include '../includes/header.php';
 
 if (!isset($_SESSION['user_ic']) || $_SESSION['user_role'] !== 'teacher') {
     echo "Akses Ditolak. Please <a href='../login.php'>login again</a>.";
@@ -87,10 +87,10 @@ if (isset($teacherClass)) {
     <meta charset="UTF-8">
     <title>Review Borang - SRIAAWP ActivHub</title>
 
-    <link rel="stylesheet" href="css/header&bg.css" />
-    <link rel="stylesheet" href="css/button.css" />
+    <link rel="stylesheet" href="../assets/css/header&bg.css" />
+    <link rel="stylesheet" href="../assets/css/button.css" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
     <style>
         /* Table styles */
         table {
@@ -210,7 +210,7 @@ if (isset($teacherClass)) {
                 <img src="../img/logo.png" alt="Logo" />
                 <div class="logo-text">
                     <span>SRIAAWP ActivHub</span>
-                    <?php include 'navlinks.php'; ?>
+                    <?php include '../includes/navlinks.php'; ?>
                 </div>
             </div>
 

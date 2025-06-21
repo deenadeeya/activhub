@@ -1,7 +1,7 @@
 <?php
-session_start();
-include 'connect.php';
-include 'header.php';
+require_once '../includes/session_check.php';
+include '../config/connect.php';
+include '../includes/header.php';
 
 // Notification count logic for teacher and student
 $pending_count = 0;
@@ -29,7 +29,7 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'teacher') {
         $pending_data = $pending_result->fetch_assoc();
         $pending_count = $pending_data['total_pending'];
     }
-    $notif_link = "approve_form.php";
+    $notif_link = "../forms/approve_form.php";
 } elseif (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'student') {
     $student_ic = $_SESSION['user_ic'] ?? null;
     if ($student_ic) {
@@ -49,7 +49,7 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'teacher') {
         }
         $stmt->close();
     }
-    $notif_link = "student_formhistory.php";
+    $notif_link = "../student/student_formhistory.php";
 }
 
 if (!isset($_GET['group'])) {
@@ -177,20 +177,20 @@ $nonMemberResult = $nonMemberQuery->get_result();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Info Kokurikulum - SRIAAWP ActivHub</title>
     <link href="http://fonts.googleapis.com/css?family=Lato:300,400,700" rel="stylesheet">
-    <link rel="stylesheet" href="css/header&bg.css">
-    <link rel="stylesheet" href="css/cocu_board_info.css">
-    <link rel="stylesheet" href="css/button.css">
+    <link rel="stylesheet" href="../assets/css/header&bg.css">
+    <link rel="stylesheet" href="../assets/css/cocu_board_info.css">
+    <link rel="stylesheet" href="../assets/css/button.css">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
-    <link rel="icon" href="/img/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../assets/img/favicon.ico" type="image/x-icon">
 </head>
 
 <body>
     <header>
         <div class="logo-section">
-            <img src="../img/logo.png" alt="Logo" />
+            <img src="../assets/img/logo.png" alt="Logo" />
             <div class="logo-text">
                 <span>SRIAAWP ActivHub</span>
-                <?php include 'navlinks.php'; ?>
+                <?php include '../includes/navlinks.php'; ?>
             </div>
         </div>
         <div class="icon-section">
@@ -211,9 +211,9 @@ $nonMemberResult = $nonMemberQuery->get_result();
                   <?php
         // Replace with your actual notification count variable
         $notif_count = $pending_count;
-        $notif_link = "student_formhistory.php";
+        $notif_link = "../student/student_formhistory.php";
         if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'teacher') {
-            $notif_link = "approve_form.php";
+            $notif_link = "../forms/approve_form.php";
         }
         ?>
 
@@ -250,7 +250,21 @@ $nonMemberResult = $nonMemberQuery->get_result();
 
             <div class="section-title">MAKLUMAT</div>
             <div class="content">
-                <img src="<?= htmlspecialchars($group['logo_path']) ?>" alt="Logo" class="group-logo">
+                <?php
+                $logoPath = $group['logo_path'];
+                // Fix logo path if it's using old structure
+                if (!empty($logoPath) && !str_starts_with($logoPath, '../assets/')) {
+                    // If path starts with 'logos/', convert to assets path
+                    if (str_starts_with($logoPath, 'logos/')) {
+                        $logoPath = '../assets/' . $logoPath;
+                    }
+                    // If path starts with '../logos/', convert to assets path  
+                    elseif (str_starts_with($logoPath, '../logos/')) {
+                        $logoPath = str_replace('../logos/', '../assets/logos/', $logoPath);
+                    }
+                }
+                ?>
+                <img src="<?= htmlspecialchars($logoPath) ?>" alt="Logo" class="group-logo">
                 <div>
                     <h3><?= htmlspecialchars($group['group_name']) ?></h3>
                     <p><strong>Penasihat:</strong> <?= htmlspecialchars($group['advisor_name']) ?></p>

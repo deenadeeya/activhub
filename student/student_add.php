@@ -1,10 +1,10 @@
 <?php
-session_start();
-require_once 'connect.php';
-include 'header.php';
+require_once '../includes/session_check.php';
+require_once '../config/connect.php';
+include '../includes/header.php';
 
 if (!isset($_SESSION['user_ic'])) {
-  header("Location: login.php");
+  header("Location: ../auth/login.php");
   exit();
 }
 
@@ -21,7 +21,7 @@ $result = $stmt->get_result();
 $user_data = $result->fetch_assoc();
 
 if (!$user_data) {
-  header("Location: login.php");
+  header("Location: ../auth/login.php");
   exit();
 }
 
@@ -77,10 +77,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="UTF-8" />
   <title>Tambah Pelajar - ActivHub</title>
-  <link rel="stylesheet" href="css/profile.css">
+  <link rel="stylesheet" href="../assets/css/profile.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-  <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+  <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
 
 </head>
 
@@ -88,10 +88,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   <header>
     <div class="logo-section">
-      <img src="../img/logo.png" alt="Logo" />
+      <img src="../assets/img/logo.png" alt="Logo" />
       <div class="logo-text">
         <span>SRI AL-AMIN ActivHub</span>
-        <?php include 'navlinks.php'; ?>
+        <?php include '../includes/navlinks.php'; ?>
       </div>
     </div>
 
@@ -109,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <form method="POST" class="profile-container">
       <section class="left-card">
         <div class="profile-header">
-          <img src="img/profile.jpg" alt="Student Image" class="profile-pic">
+          <img src="../assets/img/profile.jpg" alt="Student Image" class="profile-pic">
           <h2>REKOD PELAJAR BAHARU</h2>
         </div>
 

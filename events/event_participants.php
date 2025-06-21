@@ -1,7 +1,7 @@
 <?php
-require_once 'connect.php';
-session_start();
-include 'header.php';
+require_once '../config/connect.php';
+require_once '../includes/session_check.php';
+include '../includes/header.php';
 
 // Validate and fetch the event_id
 if (!isset($_GET['event_id']) || !is_numeric($_GET['event_id'])) {
@@ -41,11 +41,11 @@ $students_result = mysqli_query($conn, $students_sql);
 <head>
     <meta charset="UTF-8">
     <title>Peserta Acara - <?php echo htmlspecialchars($event_name); ?></title>
-    <link rel="stylesheet" href="css/dash.css">
-    <link rel="stylesheet" href="css/header&bg.css" />
-    <link rel="stylesheet" href="css/cocurricular.css" />
+    <link rel="stylesheet" href="../assets/css/dash.css">
+    <link rel="stylesheet" href="../assets/css/header&bg.css" />
+    <link rel="stylesheet" href="../assets/css/cocurricular.css" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
 </head>
 
 <body>
@@ -54,7 +54,7 @@ $students_result = mysqli_query($conn, $students_sql);
       <img src="../img/logo.png" alt="Logo" />
       <div class="logo-text">
         <span>SRIAAWP ActivHub</span>
-        <?php include 'navlinks.php'; ?>
+        <?php include '../includes/navlinks.php'; ?>
       </div>
     </div>
     <div class="icon-section">

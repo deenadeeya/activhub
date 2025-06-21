@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once '../includes/session_check.php';
 include '../connect.php';
 include '../header.php';
 ?>

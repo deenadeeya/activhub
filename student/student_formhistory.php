@@ -1,11 +1,11 @@
 <?php
-session_start();
-include 'connect.php';
-include 'header.php';
+require_once '../includes/session_check.php';
+include '../config/connect.php';
+include '../includes/header.php';
 
 // Redirect if not logged in or not a student
 if (!isset($_SESSION['user_ic']) || $_SESSION['user_role'] !== 'student') {
-    echo "Akses ditolak. Sila <a href='../login.php'>log masuk</a>.";
+    echo "Akses ditolak. Sila <a href='../auth/login.php'>log masuk</a>.";
     exit;
 }
 
@@ -53,10 +53,10 @@ mysqli_query($conn, $update_query);
 <head>
     <meta charset="UTF-8">
     <title>Sejarah Permohonan Ko-kurikulum</title>
-    <link rel="stylesheet" href="../css/header&bg.css" />
-    <link rel="stylesheet" href="../css/button.css" />
+    <link rel="stylesheet" href="../assets/css/header&bg.css" />
+    <link rel="stylesheet" href="../assets/css/button.css" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
     <style>
     /* Stylish table for history */
     .history-table {
@@ -95,10 +95,10 @@ mysqli_query($conn, $update_query);
 <body>
     <header>
     <div class="logo-section">
-      <img src="../img/logo.png" alt="Logo" />
+      <img src="../assets/img/logo.png" alt="Logo" />
       <div class="logo-text">
         <span>SRIAAWP ActivHub</span>
-        <?php include 'navlinks.php'; ?>
+        <?php include '../includes/navlinks.php'; ?>
       </div>
     </div>
     <div class="icon-section">

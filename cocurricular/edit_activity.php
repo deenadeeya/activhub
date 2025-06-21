@@ -1,7 +1,7 @@
 <?php
-session_start();
-include 'connect.php';
-include 'header.php';
+require_once '../includes/session_check.php';
+include '../config/connect.php';
+include '../includes/header.php';
 
 // Access control logic
 $student_ic = null;
@@ -128,7 +128,7 @@ $pending_count = 0;
   <link rel="stylesheet" href="../css/dash.css" />
   <link rel="stylesheet" href="../css/header&bg.css" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-  <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+  <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
 
   <style>
   /* Make dropdowns and inputs larger and more attractive */
@@ -270,7 +270,7 @@ $pending_count = 0;
       <img src="../img/logo.png" alt="Logo" />
       <div class="logo-text">
         <span>SRIAAWP ActivHub</span>
-        <?php include 'navlinks.php'; ?>
+        <?php include '../includes/navlinks.php'; ?>
       </div>
     </div>
     <div class="icon-section">

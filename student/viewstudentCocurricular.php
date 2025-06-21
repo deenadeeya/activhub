@@ -1,12 +1,13 @@
 <?php
-session_start();
-include 'connect.php';
-include 'header.php';
+require_once '../includes/session_check.php';
+include '../config/connect.php';
+include '../includes/header.php';
+
 
 // Access control logic
 $student_ic = null;
 if (!isset($_SESSION['user_ic']) || !isset($_SESSION['user_role'])) {
-    header("Location: login.php?expired=true");
+    header("Location: ../auth/login.php?expired=true");
     exit;
 }
 
@@ -28,7 +29,7 @@ if ($_SESSION['user_role'] === 'student') {
     }
 } else {
     // Not allowed
-    header("Location: login.php?expired=true");
+    header("Location: ../auth/login.php?expired=true");
     exit;
 }
 
@@ -129,20 +130,20 @@ $activity_result = $stmt->get_result();
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kokurikulum Murid - SRIAAWP ActivHub</title>
-    <link rel="stylesheet" href="css/header&bg.css" />
-    <link rel="stylesheet" href="css/cocurricular.css" />
-    <link rel="stylesheet" href="css/button.css" />
+    <link rel="stylesheet" href="../assets/css/header&bg.css" />
+    <link rel="stylesheet" href="../assets/css/cocurricular.css" />
+    <link rel="stylesheet" href="../assets/css/button.css" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
 </head>
 
 <body>
     <header>
         <div class="logo-section">
-            <img src="../img/logo.png" alt="Logo" />
+            <img src="../assets/img/logo.png" alt="Logo" />
             <div class="logo-text">
                 <span>SRIAAWP ActivHub</span>
-                <?php include 'navlinks.php'; ?>
+                <?php include '../includes/navlinks.php'; ?>
             </div>
         </div>
         <div class="icon-section">
@@ -189,7 +190,7 @@ $activity_result = $stmt->get_result();
     </header>
 
     <div class="container">
-        <button class="btn-yellow" onclick="window.print()" style="margin-bottom: 20px;">Cetak / Print</button>
+        <button class="btn-yellow" onclick="window.print()" style="margin: 10px 0px;">Cetak / Print</button>
         <style>
         @media print {
             header, .icon-section, .btn-yellow, nav, .output-card, .welcome-text {
@@ -338,45 +339,57 @@ $activity_result = $stmt->get_result();
         <?php endif; ?>
 
         <h1 class="profile-title aktiviti-title">AKTIVITI KOKURIKULUM</h1>
-        <button class="btn-yellow" onClick="location.href='student_cocuactivityform.php';">BORANG TAMBAH AKTIVITI KOKURIKULUM</button>
 
-
-
+       <button class="btn-yellow" onClick="location.href='student_cocuactivityform.php<?php echo ($_SESSION['user_role'] === 'teacher') ? '?student_ic=' . urlencode($student_ic) : ''; ?>';">
+            BORANG TAMBAH AKTIVITI KOKURIKULUM
+        </button>
 
         <table border="1" cellpadding="10" cellspacing="0">
+            <!-- Table header -->
             <thead>
                 <tr>
                     <th>Tarikh</th>
-                    <th>Nama Aktiviti</th>
-                    <th>Kategori</th>
+                    <th>Aktiviti</th>
                     <th>Lokasi</th>
+                    <th>Kategori</th>
                     <th>Peringkat</th>
                     <th>Pencapaian</th>
-                    <th>Sijil</th> <!-- New column for certificate -->
+                    <th>Sijil</th>
+                    <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'teacher'): ?>
+                        <th>Tindakan</th>
+                    <?php endif; ?>
                 </tr>
             </thead>
+
+            <!-- Table body -->
             <tbody>
                 <?php if ($activity_result->num_rows > 0): ?>
                     <?php while ($activity = $activity_result->fetch_assoc()): ?>
                         <tr>
                             <td><?php echo htmlspecialchars($activity['activity_date']); ?></td>
                             <td><?php echo htmlspecialchars($activity['activity_name']); ?></td>
-                            <td><?php echo htmlspecialchars($activity['activity_category']); ?></td>
                             <td><?php echo htmlspecialchars($activity['activity_location']); ?></td>
+                            <td><?php echo htmlspecialchars($activity['activity_category']); ?></td>
                             <td><?php echo htmlspecialchars($activity['award']); ?></td>
                             <td><?php echo htmlspecialchars($activity['ach']); ?></td>
                             <td>
                                 <?php if (!empty($activity['cert_path'])): ?>
-                                    <a href="<?php echo $activity['cert_path']; ?>" target="_blank">[Sijil]</a>
+                                    <a href="<?php echo $activity['cert_path']; ?>" target="_blank" style="color:#064789;">[Sijil]</a>
                                 <?php else: ?>
                                     -
                                 <?php endif; ?>
                             </td>
+                            <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'teacher'): ?>
+                                <td>
+                                    <a href="edit_activity.php?id=<?= $activity['id']; ?>&student_ic=<?= $student_ic; ?>" class="btn-darkblue" style="padding:4px 12px; font-size:0.95em;">Edit</a>
+                                    <a href="delete_activity.php?id=<?= $activity['id']; ?>&student_ic=<?= $student_ic; ?>" class="btn-red" style="padding:4px 12px; font-size:0.95em;" onclick="return confirm('Padam aktiviti ini?');">Padam</a>
+                                </td>
+                            <?php endif; ?>
                         </tr>
                     <?php endwhile; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="6" style="text-align: center;">Tiada aktiviti ditemui.</td>
+                        <td colspan="<?php echo (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'teacher') ? '8' : '7'; ?>" style="text-align: center;">Tiada aktiviti ditemui.</td>
                     </tr>
                 <?php endif; ?>
             </tbody>

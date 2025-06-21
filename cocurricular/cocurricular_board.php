@@ -1,7 +1,7 @@
 <?php
-session_start();
-include 'connect.php';
-include 'header.php';
+require_once '../includes/session_check.php';
+include '../config/connect.php';
+include '../includes/header.php';
 
 $pending_count = 0;
 
@@ -68,21 +68,21 @@ if ($teacher_class_id) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Papan Kokurikulum - SRIAAWP ActivHub</title>
   <link href="http://fonts.googleapis.com/css?family=Lato:300,400,700" rel="stylesheet" type="text/css">
-  <link rel="stylesheet" href="css/header&bg.css" />
-  <link rel="stylesheet" href="css/cocu_board.css" />
-  <link rel="stylesheet" href="css/button.css" />
+  <link rel="stylesheet" href="../assets/css/header&bg.css" />
+  <link rel="stylesheet" href="../assets/css/cocu_board.css" />
+  <link rel="stylesheet" href="../assets/css/button.css" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-  <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+  <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
 </head>
 
 <body>
 
   <header>
     <div class="logo-section">
-      <img src="../img/logo.png" alt="Logo" />
+      <img src="../assets/img/logo.png" alt="Logo" />
       <div class="logo-text">
         <span>SRIAAWP ActivHub</span>
-        <?php include 'navlinks.php'; ?>
+        <?php include '../includes/navlinks.php'; ?>
 
       </div>
     </div>
@@ -104,9 +104,9 @@ if ($teacher_class_id) {
       <?php
         // Replace with your actual notification count variable
         $notif_count = $pending_count;
-        $notif_link = "student_formhistory.php";
+        $notif_link = "../student/student_formhistory.php";
         if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'teacher') {
-            $notif_link = "approve_form.php";
+            $notif_link = "../forms/approve_form.php";
         }
         ?>
 
@@ -158,6 +158,19 @@ if ($teacher_class_id) {
         while ($group_row = mysqli_fetch_assoc($result)) {
           $groupName = $group_row['group_name'];
           $logoPath = $group_row['logo_path'];
+          
+          // Fix logo path if it's using old structure
+          if (!empty($logoPath) && !str_starts_with($logoPath, '../assets/')) {
+            // If path starts with 'logos/', convert to assets path
+            if (str_starts_with($logoPath, 'logos/')) {
+              $logoPath = '../assets/' . $logoPath;
+            }
+            // If path starts with '../logos/', convert to assets path  
+            elseif (str_starts_with($logoPath, '../logos/')) {
+              $logoPath = str_replace('../logos/', '../assets/logos/', $logoPath);
+            }
+          }
+          
           echo '<div class="group">';
           echo "<img src='$logoPath' alt='Logo'>";
           echo "<a href='cocurricular_info.php?group=" . urlencode($groupName) . "'>" . htmlspecialchars($groupName) . "</a>";

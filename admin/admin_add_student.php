@@ -1,9 +1,9 @@
 <?php
-session_start();
+require_once '../includes/session_check.php';
 require_once '../connect.php';
 include '../header.php';
 if (!isset($_SESSION['user_role']) || !isset($_SESSION['user_ic'])) {
-    header("Location: login.php");
+    header("Location: ../auth/login.php");
     exit();
 }
 

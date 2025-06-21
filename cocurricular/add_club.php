@@ -1,7 +1,7 @@
 <?php
-include 'connect.php';
-session_start();
-include 'header.php';
+include '../config/connect.php';
+require_once '../includes/session_check.php';
+include '../includes/header.php';
 
 // Notification count logic for teacher and student
 $pending_count = 0;
@@ -29,7 +29,7 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'teacher') {
         $pending_data = $pending_result->fetch_assoc();
         $pending_count = $pending_data['total_pending'];
     }
-    $notif_link = "approve_form.php";
+    $notif_link = "../forms/approve_form.php";
 } elseif (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'student') {
     $student_ic = $_SESSION['user_ic'] ?? null;
     if ($student_ic) {
@@ -49,7 +49,7 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'teacher') {
         }
         $stmt->close();
     }
-    $notif_link = "student_formhistory.php";
+    $notif_link = "../student/student_formhistory.php";
 }
 
 // Fetch all existing students to populate dropdowns
@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $excoY5IC = !empty($_POST['exco_y5_ic']) ? $_POST['exco_y5_ic'] : null;
     $excoY4IC = !empty($_POST['exco_y4_ic']) ? $_POST['exco_y4_ic'] : null;
 
-    $uploadDir = 'logos/';
+    $uploadDir = '../assets/logos/';
     $logoPath = '';
     if (!empty($_FILES['logo']['name'])) {
         $fileName = basename($_FILES['logo']['name']);
@@ -129,20 +129,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tambah Kelab - SRIAAWP ActivHub</title>
     <link href="http://fonts.googleapis.com/css?family=Lato:300,400,700" rel="stylesheet" type="text/css">
-    <link rel="stylesheet" href="css/header&bg.css" />
-    <link rel="stylesheet" href="css/add_cocuboard.css" />
-    <link rel="stylesheet" href="css/button.css" />
+    <link rel="stylesheet" href="../assets/css/header&bg.css" />
+    <link rel="stylesheet" href="../assets/css/add_cocuboard.css" />
+    <link rel="stylesheet" href="../assets/css/button.css" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
 </head>
 
 <body>
     <header>
         <div class="logo-section">
-            <img src="../img/logo.png" alt="Logo" />
+            <img src="../assets/img/logo.png" alt="Logo" />
             <div class="logo-text">
                 <span>SRIAAWP ActivHub</span>
-                <?php include 'navlinks.php'; ?>
+                <?php include '../includes/navlinks.php'; ?>
             </div>
         </div>
         <div class="icon-section">
@@ -163,9 +163,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   <?php
         // Replace with your actual notification count variable
         $notif_count = $pending_count;
-        $notif_link = "student_formhistory.php";
+        $notif_link = "../student/student_formhistory.php";
         if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'teacher') {
-            $notif_link = "approve_form.php";
+            $notif_link = "../forms/approve_form.php";
         }
         ?>
 

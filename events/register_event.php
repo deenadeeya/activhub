@@ -1,6 +1,6 @@
 <?php
-session_start();
-require_once 'connect.php';
+require_once '../includes/session_check.php';
+require_once '../config/connect.php';
 
 if (!isset($_SESSION['student_id'])) {
     // Redirect to login if not logged in
@@ -44,5 +44,5 @@ if (isset($_GET['event_id'])) {
 }
 
 // Redirect back to student dashboard or event list
-header("Location: student/student_dashboard.php");
+header("Location: ../student/student_dashboard.php");
 exit();

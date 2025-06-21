@@ -1,11 +1,11 @@
 <?php
-include 'connect.php';
-session_start();
-include 'header.php';
+include '../config/connect.php';
+require_once '../includes/session_check.php';
+include '../includes/header.php';
 
 
 if (!isset($_SESSION['user_ic']) || !in_array($_SESSION['user_role'], ['student', 'teacher'])) {
-  header("Location: login.php?expired=true");
+  header("Location: ../auth/login.php?expired=true");
   exit;
 }
 
@@ -140,11 +140,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['submit_competition'])
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Borang Koku Murid - SRIAAWP ActivHub</title>
-  <link rel="stylesheet" href="css/header&bg.css" />
-  <link rel="stylesheet" href="css/cocurricular.css" />
-  <link rel="stylesheet" href="css/button.css" />
+  <link rel="stylesheet" href="../assets/css/header&bg.css" />
+  <link rel="stylesheet" href="../assets/css/cocurricular.css" />
+  <link rel="stylesheet" href="../assets/css/button.css" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-  <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+  <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
   <style>
   /* Make dropdowns and inputs larger and more attractive */
   .activity-list select,
@@ -282,10 +282,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['submit_competition'])
 <body>
   <header>
     <div class="logo-section">
-      <img src="../img/logo.png" alt="Logo" />
+      <img src="../assets/img/logo.png" alt="Logo" />
       <div class="logo-text">
         <span>SRIAAWP ActivHub</span>
-        <?php include 'navlinks.php'; ?>
+        <?php include '../includes/navlinks.php'; ?>
       </div>
     </div>
     <div class="icon-section">

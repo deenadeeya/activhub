@@ -1,10 +1,10 @@
 <?php
-require_once 'connect.php';
-session_start();
-include 'header.php';
+require_once '../config/connect.php';
+require_once '../includes/session_check.php';
+include '../includes/header.php';
 
 if (!isset($_SESSION['user_ic']) || $_SESSION['user_role'] !== 'student') {
-  header("Location: login.php?expired=true");
+  header("Location: ../auth/login.php?expired=true");
   exit();
 }
 
@@ -21,7 +21,7 @@ if ($result && mysqli_num_rows($result) === 1) {
   $row = mysqli_fetch_assoc($result);
   $student_year = $row['class_year'];
 } else {
-  header("Location: login.php?expired=true");
+  header("Location: ../auth/login.php?expired=true");
   exit();
 }
 
@@ -110,10 +110,10 @@ if (isset($_GET['register']) && isset($_GET['event_id'])) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Murid Dashboard - SRIAAWP ActivHub</title>
   <link href="http://fonts.googleapis.com/css?family=Lato:300,400,700" rel="stylesheet" type="text/css">
-  <link rel="stylesheet" href="../css/dash.css" />
-  <link rel="stylesheet" href="../css/header&bg.css" />
+  <link rel="stylesheet" href="../assets/css/dash.css" />
+  <link rel="stylesheet" href="../assets/css/header&bg.css" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-  <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+  <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
   <script>
     function confirmRegistration(eventId) {
       if (confirm("Adakah anda pasti mahu mendaftar untuk acara ini?")) {
@@ -132,10 +132,10 @@ if (isset($_GET['register']) && isset($_GET['event_id'])) {
 
   <header>
     <div class="logo-section">
-      <img src="../img/logo.png" alt="Logo" />
+      <img src="../assets/img/logo.png" alt="Logo" />
       <div class="logo-text">
         <span>SRIAAWP ActivHub</span>
-        <?php include 'navlinks.php'; ?>
+        <?php include '../includes/navlinks.php'; ?>
       </div>
     </div>
     <div class="icon-section">
@@ -183,7 +183,7 @@ if (isset($_GET['register']) && isset($_GET['event_id'])) {
 
   <div class="container">
     <div class="welcome-section">
-      <img src="../img/logo.png" alt="Logo">
+      <img src="../assets/img/logo.png" alt="Logo">
       <div class="welcome-texts">
         <h1>Selamat Datang ke SRIAAWP ActivHub</h1>
         <h2>"Pusat Rekod Kokurikulum Pelajar SRI AL-AMIN WILAYAH PERSEKUTUAN"</h2>
@@ -214,8 +214,8 @@ if (isset($_GET['register']) && isset($_GET['event_id'])) {
 
         <button class="btn-yellow" onClick="location.href='student_profile.php';">PROFIL MURID</button>
         <button class="btn-yellow" onClick="location.href='student_cocurricular.php';">PROFIL & AKTIVITI KOKURIKULUM</button>
-        <button class="btn-yellow" onClick="location.href='cocurricular_board.php';">PAPAN KOKURIKULUM</button>
-        <form action="logout.php" method="post">
+        <button class="btn-yellow" onClick="location.href='../cocurricular/cocurricular_board.php';">PAPAN KOKURIKULUM</button>
+        <form action="../auth/logout.php" method="post">
           <button type="submit" class="btn-red">DAFTAR KELUAR</button>
         </form>
       </div>

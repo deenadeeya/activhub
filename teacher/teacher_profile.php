@@ -1,11 +1,11 @@
 <?php
-session_start();
+require_once '../includes/session_check.php';
 include '../connect.php';
 include '../header.php';
 
 // Check if logged in and role is teacher
 if (!isset($_SESSION['user_ic']) || $_SESSION['user_role'] !== 'teacher') {
-    echo "Unauthorized access. Please <a href='../login.php'>login again</a>.";
+    echo "Unauthorized access. Please <a href='../auth/login.php'>login again</a>.";
     exit;
 }
 

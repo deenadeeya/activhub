@@ -1,7 +1,7 @@
 <?php
-session_start();
-include 'connect.php';
-include 'header.php';
+require_once '../includes/session_check.php';
+include '../config/connect.php';
+include '../includes/header.php';
 
 // Notification count logic for teacher and student
 $pending_count = 0;
@@ -29,7 +29,7 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'teacher') {
         $pending_data = $pending_result->fetch_assoc();
         $pending_count = $pending_data['total_pending'];
     }
-    $notif_link = "approve_form.php";
+    $notif_link = "../forms/approve_form.php";
 } elseif (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'student') {
     $student_ic = $_SESSION['user_ic'] ?? null;
     if ($student_ic) {
@@ -49,7 +49,7 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'teacher') {
         }
         $stmt->close();
     }
-    $notif_link = "student_formhistory.php";
+    $notif_link = "../student/student_formhistory.php";
 }
 
 if (!isset($_GET['group_id']) || !is_numeric($_GET['group_id'])) {
@@ -130,11 +130,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    // Step 4: Update cocurricular_groups table with all fields
+    // Step 4: Handle logo upload if a new file is provided
+    $logoPath = $group['logo_path']; // Keep existing logo path by default
+    if (!empty($_FILES['logo']['name'])) {
+        $uploadDir = '../assets/logos/';
+        $fileName = basename($_FILES['logo']['name']);
+        $targetFilePath = $uploadDir . time() . '_' . $fileName;
+        if (move_uploaded_file($_FILES['logo']['tmp_name'], $targetFilePath)) {
+            // Delete old logo if it exists
+            if (!empty($group['logo_path']) && file_exists($group['logo_path'])) {
+                unlink($group['logo_path']);
+            }
+            $logoPath = $targetFilePath;
+        }
+    }
+
+    // Step 5: Update cocurricular_groups table with all fields
     $fieldsToUpdate = [
         'group_name',
         'group_type',
         'group_description',
+        'logo_path',
         'advisor_name',
         'advisor_ic'
     ];
@@ -160,6 +176,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (in_array($field, array_keys($roles))) {
             // Role fields, could be empty (null)
             $bind_values[] = !empty($_POST[$field]) ? $_POST[$field] : null;
+        } elseif ($field === 'logo_path') {
+            // Logo path - use the updated logo path
+            $bind_values[] = $logoPath;
         } else {
             // Other fields from POST directly
             $bind_values[] = $_POST[$field];
@@ -191,20 +210,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8" />
     <title>Edit Club - SRIAAWP ActivHub</title>
-    <link rel="stylesheet" href="css/header&bg.css" />
-    <link rel="stylesheet" href="css/form.css" />
-    <link rel="stylesheet" href="css/button.css" />
+    <link rel="stylesheet" href="../assets/css/header&bg.css" />
+    <link rel="stylesheet" href="../assets/css/form.css" />
+    <link rel="stylesheet" href="../assets/css/button.css" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
 </head>
 
 <body>
     <header>
     <div class="logo-section">
-      <img src="../img/logo.png" alt="Logo" />
+      <img src="../assets/img/logo.png" alt="Logo" />
       <div class="logo-text">
         <span>SRIAAWP ActivHub</span>
-        <?php include 'navlinks.php'; ?>
+        <?php include '../includes/navlinks.php'; ?>
       </div>
     </div>
     <div class="icon-section">
@@ -225,9 +244,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php
         // Replace with your actual notification count variable
         $notif_count = $pending_count;
-        $notif_link = "student_formhistory.php";
+        $notif_link = "../student/student_formhistory.php";
         if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'teacher') {
-            $notif_link = "approve_form.php";
+            $notif_link = "../forms/approve_form.php";
         }
         ?>
 

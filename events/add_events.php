@@ -1,7 +1,7 @@
 <?php
-session_start();
-include 'connect.php';
-include 'header.php';
+require_once '../includes/session_check.php';
+include '../config/connect.php';
+include '../includes/header.php';
 
 $success = "";
 $error = "";
@@ -83,11 +83,11 @@ if ($teacher_class_id) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kokurikulum Murid - SRIAAWP ActivHub</title>
-  <link rel="stylesheet" href="css/header&bg.css" />
-  <link rel="stylesheet" href="css/cocurricular.css" />
-  <link rel="stylesheet" href="css/button.css" />
+  <link rel="stylesheet" href="../assets/css/header&bg.css" />
+  <link rel="stylesheet" href="../assets/css/cocurricular.css" />
+  <link rel="stylesheet" href="../assets/css/button.css" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-  <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+  <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
   <style>
 /* Attractive form styling for add_events.php */
 .activity-list select,
@@ -172,7 +172,7 @@ if ($teacher_class_id) {
                 <a href="../add_events.php">Tambah Acara Kokurikulum</a>
                 <a href="../cocurricular_board.php">Papan Kokurikulum</a>
             <?php elseif ($user_role === 'student'): ?>
-                <a href="student_dashboard.php">Papan Pemuka</a>
+                <a href="../student/student_dashboard.php">Papan Pemuka</a>
                 <a href="student_formhistory.php">Sejarah Borang</a>
                 <a href="student_profile.php">Profil Murid</a>
                 <a href="student_cocurricular.php">Profil & Aktiviti Kokurikulum</a>

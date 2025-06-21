@@ -26,7 +26,7 @@ if (!isset($user_role)) {
             <a href="../add_events.php">Tambah Acara Kokurikulum</a>
             <a href="../cocurricular_board.php">Papan Kokurikulum</a>
         <?php elseif ($user_role === 'student'): ?>
-            <a href="student_dashboard.php">Papan Pemuka</a>
+            <a href="../student/student_dashboard.php">Papan Pemuka</a>
             <a href="student_formhistory.php">Sejarah Borang</a>
             <a href="student_profile.php">Profil Murid</a>
             <a href="student_cocurricular.php">Profil & Aktiviti Kokurikulum</a>

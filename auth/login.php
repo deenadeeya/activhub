@@ -1,8 +1,8 @@
 <?php
-require_once 'connect.php';
+require_once '../config/connect.php';
 
 ini_set('session.gc_maxlifetime', 1800); // 30 minutes
-session_set_cookie_params(1800);
+session_set_cookie_params(0); // Session expires when browser closes
 session_start();
 
 // Auto-login using cookies
@@ -18,7 +18,7 @@ if (isset($_COOKIE['user_ic']) && isset($_COOKIE['user_role'])) {
     header("Location: ../teacher/teacher_dashboard.php");
     exit();
   } elseif ($_COOKIE['user_role'] === 'student') {
-    header("Location: student_dashboard.php");
+    header("Location: ../student/student_dashboard.php");
     exit();
   }
 }
@@ -95,7 +95,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           setcookie("user_role", "student", time() + (86400 * 30), "/");
         }
 
-        header("Location: student_dashboard.php");
+        header("Location: ../student/student_dashboard.php");
         exit();
       }
     }
@@ -115,16 +115,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Log Masuk - SRIAAWP</title>
   <link href="http://fonts.googleapis.com/css?family=Lato:300,400,700" rel="stylesheet" type="text/css">
-  <link rel="stylesheet" href="../css/login.css" />
+  <link rel="stylesheet" href="../assets/css/login.css" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-  <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+  <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
 </head>
 
 <body>
   <div class="container">
     <div class="header-block">
       <div class="header-row">
-        <img src="img/logo.png" alt="School Logo" class="logo" />
+        <img src="../assets/img/logo.png" alt="School Logo" class="logo" />
         <div class="title-text">
           <p class="welcome">Selamat Datang Ke</p>
           <h1>SRIAAWP ActivHub</h1>

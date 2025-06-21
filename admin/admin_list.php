@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once '../includes/session_check.php';
 require_once '../connect.php';
 include '../header.php';
 
@@ -7,14 +7,14 @@ include '../header.php';
 if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 1800)) {
     session_unset();
     session_destroy();
-    header("Location: ../login.php?expired=1");
+    header("Location: ../auth/login.php?expired=1");
     exit();
 }
 $_SESSION['LAST_ACTIVITY'] = time(); // update last activity time
 
 // Check if user is logged in and is admin
 if (!isset($_SESSION['user_ic']) || !isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
-    header("Location: ../login.php");
+    header("Location: ../auth/login.php");
     exit();
 }
 
