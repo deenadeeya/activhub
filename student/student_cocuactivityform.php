@@ -9,6 +9,32 @@ if (!isset($_SESSION['user_ic']) || !in_array($_SESSION['user_role'], ['student'
   exit;
 }
 
+// Get the target student IC from URL parameter (for teachers)
+$target_student_ic = isset($_GET['student_ic']) ? $_GET['student_ic'] : null;
+
+// Handle edit mode
+$edit_mode = false;
+$edit_data = null;
+if (isset($_GET['edit_id']) && $_SESSION['user_role'] === 'student') {
+    $edit_id = $_GET['edit_id'];
+    $student_ic = $_SESSION['user_ic'];
+    
+    // Fetch the rejected activity data for editing
+    $edit_query = "SELECT * FROM cocu_activities WHERE id = ? AND student_ic = ? AND approval_status = 'rejected'";
+    $stmt = $conn->prepare($edit_query);
+    $stmt->bind_param("is", $edit_id, $student_ic);
+    $stmt->execute();
+    $edit_result = $stmt->get_result();
+    
+    if ($edit_result->num_rows > 0) {
+        $edit_mode = true;
+        $edit_data = $edit_result->fetch_assoc();
+    } else {
+        echo "<script>alert('Tidak dapat mengedit aktiviti ini.'); window.location.href='student_formhistory.php';</script>";
+        exit;
+    }
+}
+
 // Get student info
 $query = "SELECT s.*, c.class_name, t.teacher_fname, t.teacher_email 
           FROM student s 
@@ -58,35 +84,94 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['submit_competition'])
   // Handle file upload
   $cert = $_FILES['cert'];
   $cert_path = '';
-
-  if ($cert['error'] === UPLOAD_ERR_OK && strtolower(pathinfo($cert['name'], PATHINFO_EXTENSION)) === 'pdf') {
-    $upload_dir = 'uploads/certificates/';
+  
+  // If editing and no new file uploaded, keep existing certificate
+  if ($edit_mode && (!isset($cert['name']) || empty($cert['name']))) {
+      $cert_path = $edit_data['cert_path'];
+  } elseif ($cert['error'] === UPLOAD_ERR_OK && strtolower(pathinfo($cert['name'], PATHINFO_EXTENSION)) === 'pdf') {
+    $upload_dir = '../assets/uploads/certificates/';
 
     // Create folder if it doesn't exist
     if (!is_dir($upload_dir)) {
       mkdir($upload_dir, 0777, true);
     }
 
-    $cert_path = $upload_dir . basename($cert['name']);
+    $cert_path = 'uploads/certificates/' . basename($cert['name']);
+    $full_cert_path = $upload_dir . basename($cert['name']);
 
-    if (move_uploaded_file($cert['tmp_name'], $cert_path)) {
-      // Upload success - you can save $cert_path to DB here
+    if (move_uploaded_file($cert['tmp_name'], $full_cert_path)) {
+      // Upload success - $cert_path now contains the relative path for DB
     } else {
       echo "Failed to move uploaded file.";
     }
   }
 
-  // Save to DB
-  $approval_status = ($_SESSION['user_role'] === 'teacher') ? 'approved' : 'pending';
+  // Save to DB or Update existing record
+  if ($edit_mode) {
+      // Update existing rejected record
+      $sql = "UPDATE cocu_activities SET 
+              activity_name = ?, activity_category = ?, activity_date = ?,
+              award = ?, activity_location = ?, ach = ?, org = ?, cert_path = ?, 
+              approval_status = 'pending', rejection_remarks = NULL, 
+              approved_by = NULL, approved_at = NULL, notification_read = 0
+              WHERE id = ? AND student_ic = ?";
+      
+      $stmt = $conn->prepare($sql);
+      $stmt->bind_param(
+          "ssssssssii",
+          $activity_name,
+          $activity_category,
+          $activity_date,
+          $award,
+          $activity_location,
+          $ach,
+          $org,
+          $cert_path,
+          $edit_data['id'],
+          $student_ic
+      );
+      
+      if ($stmt->execute()) {
+          $success_message = "Aktiviti berjaya dikemas kini dan dihantar semula untuk kelulusan.";
+      } else {
+          $error_message = "Error updating activity: " . $stmt->error;
+      }
+      $stmt->close();
+  } else {
+      // Insert new record
+      $approval_status = ($_SESSION['user_role'] === 'teacher') ? 'approved' : 'pending';
 
-  $sql = "INSERT INTO cocu_activities (
-    student_ic, activity_name, activity_category, activity_date,
-    award, activity_location, ach, org, cert_path, approval_status
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+      $sql = "INSERT INTO cocu_activities (
+        student_ic, activity_name, activity_category, activity_date,
+        award, activity_location, ach, org, cert_path, approval_status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-  if ($_SESSION['user_role'] === 'teacher') {
-    $student_ics = $_POST['student_ic']; // This is now an array
-    foreach ($student_ics as $student_ic) {
+      if ($_SESSION['user_role'] === 'teacher') {
+        $student_ics = $_POST['student_ic']; // This is now an array
+        foreach ($student_ics as $student_ic) {
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param(
+                "ssssssssss",
+                $student_ic,
+                $activity_name,
+                $activity_category,
+                $activity_date,
+                $award,
+                $activity_location,
+                $ach,
+                $org,
+                $cert_path,
+                $approval_status
+            );
+            $stmt->execute();
+            $stmt->close();
+        }
+        // Redirect back to the first student's view if we came from a specific student, otherwise use the first selected student
+        $redirect_student_ic = $target_student_ic ? $target_student_ic : $student_ics[0];
+        header("Location: viewstudentCocurricular.php?student_ic=" . urlencode($redirect_student_ic));
+        exit;
+    } else {
+        // For students, use their own IC
         $stmt = $conn->prepare($sql);
         $stmt->bind_param(
             "ssssssssss",
@@ -101,34 +186,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['submit_competition'])
             $cert_path,
             $approval_status
         );
-        $stmt->execute();
+        if ($stmt->execute()) {
+            $success_message = "Borang berjaya dihantar. Sila tunggu kelulusan guru anda.";
+        } else {
+            $error_message = "Error saving activity: " . $stmt->error;
+        }
         $stmt->close();
     }
-    header("Location: viewstudentCocurricular.php?student_ic=" . urlencode($student_ics[0]));
-    exit;
-} else {
-    // For students, use their own IC
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param(
-        "ssssssssss",
-        $student_ic,
-        $activity_name,
-        $activity_category,
-        $activity_date,
-        $award,
-        $activity_location,
-        $ach,
-        $org,
-        $cert_path,
-        $approval_status
-    );
-    if ($stmt->execute()) {
-        $success_message = "Borang berjaya dihantar. Sila tunggu kelulusan guru anda.";
-    } else {
-        $error_message = "Error saving activity: " . $stmt->error;
-    }
-    $stmt->close();
-}
+  }
 }
 
 ?>
@@ -308,7 +373,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['submit_competition'])
   </header>
 
   <div class="container">
-    <h1 class="profile-title">BORANG TAMBAH AKTIVITI KOKURIKULUM</h1>
+    <h1 class="profile-title"><?= $edit_mode ? 'EDIT AKTIVITI KOKURIKULUM' : 'BORANG TAMBAH AKTIVITI KOKURIKULUM' ?></h1>
+    
+    <?php if ($edit_mode): ?>
+        <div style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ffc107;">
+            <strong>Sebab Penolakan:</strong> <?= htmlspecialchars($edit_data['rejection_remarks']) ?>
+            <br><small>Sila kemaskini maklumat aktiviti dan hantar semula untuk kelulusan.</small>
+        </div>
+    <?php endif; ?>
 
     <?php if (isset($success_message)): ?>
       <div id="successModal" class="modal-message">
@@ -320,7 +392,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['submit_competition'])
     <?php endif; ?>
     <?php if (isset($error_message)) echo "<p style='color:red;'>$error_message</p>"; ?>
 
-    <button class="btn-red" onClick="location.href='student_cocurricular.php';">KEMBALI</button>
+    <?php if ($_SESSION['user_role'] === 'teacher' && $target_student_ic): ?>
+        <button class="btn-red" onClick="location.href='viewstudentCocurricular.php?student_ic=<?= urlencode($target_student_ic) ?>';">KEMBALI</button>
+    <?php elseif ($_SESSION['user_role'] === 'teacher'): ?>
+        <button class="btn-red" onClick="location.href='../teacher/teacher_dashboard.php';">KEMBALI</button>
+    <?php else: ?>
+        <button class="btn-red" onClick="location.href='student_cocurricular.php';">KEMBALI</button>
+    <?php endif; ?>
 
     <div class="empty-space"></div>
     <div class="act-card activity-form-card">
@@ -329,10 +407,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['submit_competition'])
           <?php if ($_SESSION['user_role'] === 'teacher'): ?>
             <li>
               <label><strong>Pilih Murid:</strong>
+                <?php if ($target_student_ic): ?>
+                  <div style="background: #e6f3ff; color: #0066cc; padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; font-size: 0.95em;">
+                    <strong>📋 Aktiviti untuk murid tertentu:</strong> Murid telah dipra-pilih berdasarkan pandangan yang anda akses.
+                  </div>
+                <?php endif; ?>
                 <input type="text" id="studentSearch" placeholder="Cari nama murid..." style="width:100%;margin-bottom:6px;padding:6px 10px;border-radius:6px;border:1px solid #b0b0b0;font-size:1em;">
                 <select name="student_ic[]" id="studentDropdown" multiple required size="3" style="height:auto;max-height:120px;overflow-y:auto;font-size:1em;">
                   <?php foreach ($students as $student): ?>
-                    <option value="<?= htmlspecialchars($student['student_ic']) ?>">
+                    <option value="<?= htmlspecialchars($student['student_ic']) ?>" 
+                            <?= ($target_student_ic && $target_student_ic === $student['student_ic']) ? 'selected' : '' ?>>
                       <?= htmlspecialchars($student['student_fname']) ?> (<?= htmlspecialchars($student['student_ic']) ?>)
                     </option>
                   <?php endforeach; ?>
@@ -368,57 +452,68 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['submit_competition'])
               });
             </script>
           <?php endif; ?>
-          <li><label><strong>Nama Aktiviti:</strong> <input type="text" name="activity_name" required></label></li>
+          <li><label><strong>Nama Aktiviti:</strong> <input type="text" name="activity_name" value="<?= $edit_mode ? htmlspecialchars($edit_data['activity_name']) : '' ?>" required></label></li>
           <li>
             <label>
               <strong>Kategori:</strong>
               <select name="activity_category" id="activity_category_select" required onchange="toggleOtherCategory(this)">
                 <option value="">-- Pilih Kategori --</option>
-                <option value="Rumah Sukan">Sukan</option>
-                <option value="Kelab">Kelab</option>
-                <option value="Unit Beruniform">Unit Beruniform</option>
-                <option value="Lainnya">Lain-Lain (Nyatakan)</option>
+                <option value="Rumah Sukan" <?= $edit_mode && $edit_data['activity_category'] == 'Rumah Sukan' ? 'selected' : '' ?>>Sukan</option>
+                <option value="Kelab" <?= $edit_mode && $edit_data['activity_category'] == 'Kelab' ? 'selected' : '' ?>>Kelab</option>
+                <option value="Unit Beruniform" <?= $edit_mode && $edit_data['activity_category'] == 'Unit Beruniform' ? 'selected' : '' ?>>Unit Beruniform</option>
+                <option value="Lainnya" <?= $edit_mode && !in_array($edit_data['activity_category'], ['Rumah Sukan', 'Kelab', 'Unit Beruniform']) ? 'selected' : '' ?>>Lain-Lain (Nyatakan)</option>
               </select>
-              <input type="text" name="activity_category_other" id="activity_category_other" placeholder="Nyatakan kategori lain" style="display:none; margin-top:5px;" />
+              <input type="text" name="activity_category_other" id="activity_category_other" placeholder="Nyatakan kategori lain" value="<?= $edit_mode && !in_array($edit_data['activity_category'], ['Rumah Sukan', 'Kelab', 'Unit Beruniform']) ? htmlspecialchars($edit_data['activity_category']) : '' ?>" style="<?= $edit_mode && !in_array($edit_data['activity_category'], ['Rumah Sukan', 'Kelab', 'Unit Beruniform']) ? 'margin-top:5px;' : 'display:none; margin-top:5px;' ?>" />
             </label>
           </li>
-          <li><label><strong>Tarikh:</strong> <input type="date" name="activity_date" required></label></li>
+          <li><label><strong>Tarikh:</strong> <input type="date" name="activity_date" value="<?= $edit_mode ? htmlspecialchars($edit_data['activity_date']) : '' ?>" required></label></li>
           <li>
             <label>
               <strong>Peringkat:</strong>
               <select name="award" id="peringkat_select" required onchange="toggleOtherPeringkat(this)">
                 <option value="">-- Pilih Peringkat --</option>
-                <option value="Sekolah">Sekolah</option>
-                <option value="Daerah">Daerah</option>
-                <option value="Negeri">Negeri</option>
-                <option value="Kebangsaan">Kebangsaan</option>
-                <option value="Antarabangsa">Antarabangsa</option>
-                <option value="Lainnya">Lain-Lain (Nyatakan)</option>
+                <option value="Sekolah" <?= $edit_mode && $edit_data['award'] == 'Sekolah' ? 'selected' : '' ?>>Sekolah</option>
+                <option value="Daerah" <?= $edit_mode && $edit_data['award'] == 'Daerah' ? 'selected' : '' ?>>Daerah</option>
+                <option value="Negeri" <?= $edit_mode && $edit_data['award'] == 'Negeri' ? 'selected' : '' ?>>Negeri</option>
+                <option value="Kebangsaan" <?= $edit_mode && $edit_data['award'] == 'Kebangsaan' ? 'selected' : '' ?>>Kebangsaan</option>
+                <option value="Antarabangsa" <?= $edit_mode && $edit_data['award'] == 'Antarabangsa' ? 'selected' : '' ?>>Antarabangsa</option>
+                <option value="Lainnya" <?= $edit_mode && !in_array($edit_data['award'], ['Sekolah', 'Daerah', 'Negeri', 'Kebangsaan', 'Antarabangsa']) ? 'selected' : '' ?>>Lain-Lain (Nyatakan)</option>
               </select>
-              <input type="text" name="award_other" id="peringkat_other" placeholder="Nyatakan peringkat lain" style="display:none; margin-top:5px;" />
+              <input type="text" name="award_other" id="peringkat_other" placeholder="Nyatakan peringkat lain" value="<?= $edit_mode && !in_array($edit_data['award'], ['Sekolah', 'Daerah', 'Negeri', 'Kebangsaan', 'Antarabangsa']) ? htmlspecialchars($edit_data['award']) : '' ?>" style="<?= $edit_mode && !in_array($edit_data['award'], ['Sekolah', 'Daerah', 'Negeri', 'Kebangsaan', 'Antarabangsa']) ? 'margin-top:5px;' : 'display:none; margin-top:5px;' ?>" />
             </label>
           </li>
-          <li><label><strong>Lokasi:</strong> <input type="text" name="activity_location" required></label></li>
-          <li><label><strong>Penganjur:</strong> <input type="text" name="org" required></label></li>
+          <li><label><strong>Lokasi:</strong> <input type="text" name="activity_location" value="<?= $edit_mode ? htmlspecialchars($edit_data['activity_location']) : '' ?>" required></label></li>
+          <li><label><strong>Penganjur:</strong> <input type="text" name="org" value="<?= $edit_mode ? htmlspecialchars($edit_data['org']) : '' ?>" required></label></li>
           <li>
             <label>
               <strong>Pencapaian:</strong>
               <select name="ach" id="ach_select" required onchange="toggleOtherAch(this)">
                 <option value="">-- Pilih Pencapaian --</option>
-                <option value="Penyertaan">Penyertaan</option>
-                <option value="Johan">Johan</option>
-                <option value="Naib Johan">Naib Johan</option>
-                <option value="Ketiga">Ketiga</option>
-                <option value="Saguhati">Saguhati</option>
-                <option value="Lainnya">Lain-Lain (Nyatakan)</option>
+                <option value="Penyertaan" <?= $edit_mode && $edit_data['ach'] == 'Penyertaan' ? 'selected' : '' ?>>Penyertaan</option>
+                <option value="Johan" <?= $edit_mode && $edit_data['ach'] == 'Johan' ? 'selected' : '' ?>>Johan</option>
+                <option value="Naib Johan" <?= $edit_mode && $edit_data['ach'] == 'Naib Johan' ? 'selected' : '' ?>>Naib Johan</option>
+                <option value="Ketiga" <?= $edit_mode && $edit_data['ach'] == 'Ketiga' ? 'selected' : '' ?>>Ketiga</option>
+                <option value="Saguhati" <?= $edit_mode && $edit_data['ach'] == 'Saguhati' ? 'selected' : '' ?>>Saguhati</option>
+                <option value="Lainnya" <?= $edit_mode && !in_array($edit_data['ach'], ['Penyertaan', 'Johan', 'Naib Johan', 'Ketiga', 'Saguhati']) ? 'selected' : '' ?>>Lain-Lain (Nyatakan)</option>
               </select>
-              <input type="text" name="ach_other" id="ach_other" placeholder="Nyatakan pencapaian lain" style="display:none; margin-top:5px;" />
+              <input type="text" name="ach_other" id="ach_other" placeholder="Nyatakan pencapaian lain" value="<?= $edit_mode && !in_array($edit_data['ach'], ['Penyertaan', 'Johan', 'Naib Johan', 'Ketiga', 'Saguhati']) ? htmlspecialchars($edit_data['ach']) : '' ?>" style="<?= $edit_mode && !in_array($edit_data['ach'], ['Penyertaan', 'Johan', 'Naib Johan', 'Ketiga', 'Saguhati']) ? 'margin-top:5px;' : 'display:none; margin-top:5px;' ?>" />
             </label>
           </li>
-          <li><label><strong>Sijil (PDF):</strong> <input type="file" name="cert" accept="application/pdf" required></label></li>
+          <li>
+            <label><strong>Sijil (PDF):</strong> 
+              <input type="file" name="cert" accept="application/pdf" <?= $edit_mode ? '' : 'required' ?>>
+              <?php if ($edit_mode && !empty($edit_data['cert_path'])): ?>
+                <br><small style="color: #666;">Sijil semasa: <a href="../assets/uploads/certificates/<?= htmlspecialchars(basename($edit_data['cert_path'])) ?>" target="_blank"><?= htmlspecialchars(basename($edit_data['cert_path'])) ?></a></small>
+                <br><small style="color: #888;">Tinggalkan kosong jika tidak mahu menukar sijil.</small>
+              <?php endif; ?>
+            </label>
+          </li>
         </ul>
         <div style="text-align: center;">
-          <button type="submit" name="submit_competition">Hantar Borang</button>
+          <button type="submit" name="submit_competition"><?= $edit_mode ? 'Kemaskini & Hantar Semula' : 'Hantar Borang' ?></button>
+          <?php if ($edit_mode): ?>
+            <a href="student_formhistory.php" style="margin-left: 15px; padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px;">Batal</a>
+          <?php endif; ?>
         </div>
       </form>
 

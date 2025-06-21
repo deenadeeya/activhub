@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teacher Navigation Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-link { display: block; margin: 10px 0; padding: 10px; background: #f0f0f0; text-decoration: none; color: #333; }
+        .test-link:hover { background: #e0e0e0; }
+        .status { font-weight: bold; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Teacher Navigation Links Test</h1>
+    <p>Testing all navigation links from teacher directory:</p>
+    
+    <a href="../teacher/teacher_dashboard.php" class="test-link">
+        <span class="status">✓</span> Papan Pemuka - ../teacher/teacher_dashboard.php
+    </a>
+    
+    <a href="../forms/audit_history.php" class="test-link">
+        <span class="status">✓</span> Sejarah Borang - ../forms/audit_history.php
+    </a>
+    
+    <a href="../teacher/teacher_profile.php" class="test-link">
+        <span class="status">✓</span> Profil Guru - ../teacher/teacher_profile.php
+    </a>
+    
+    <a href="../student/studentList.php" class="test-link">
+        <span class="status">✓</span> Senarai Pelajar - ../student/studentList.php
+    </a>
+    
+    <a href="../forms/approve_form.php" class="test-link">
+        <span class="status">✓</span> Senarai Borang - ../forms/approve_form.php
+    </a>
+    
+    <a href="../student/student_cocuactivityform.php" class="test-link">
+        <span class="status">✓</span> Tambah Aktiviti Murid - ../student/student_cocuactivityform.php
+    </a>
+    
+    <a href="../events/add_events.php" class="test-link">
+        <span class="status">✓</span> Tambah Acara - ../events/add_events.php
+    </a>
+    
+    <a href="../cocurricular/cocurricular_board.php" class="test-link">
+        <span class="status">✓</span> Papan Kokurikulum - ../cocurricular/cocurricular_board.php
+    </a>
+    
+    <hr>
+    <p><strong>All paths are relative from teacher/ directory</strong></p>
+    <p>Each link should work when navigation is included from:</p>
+    <ul>
+        <li>teacher/ files</li>
+        <li>forms/ files</li>
+        <li>student/ files</li>
+        <li>events/ files</li>
+        <li>cocurricular/ files</li>
+    </ul>
+</body>
+</html>

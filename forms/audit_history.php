@@ -126,9 +126,10 @@ if ($user_role === 'teacher') {
 
 // Prepare and execute the appropriate query based on user role
 if ($user_role === 'teacher' && $teacherClass) {
-    $query = "SELECT a.*, s.student_fname, s.student_class, t.teacher_fname as approved_by_name
+    $query = "SELECT a.*, s.student_fname, s.student_class, c.class_name, t.teacher_fname as approved_by_name
               FROM cocu_activities a
               JOIN student s ON a.student_ic = s.student_ic
+              LEFT JOIN class c ON s.student_class = c.class_id
               LEFT JOIN teacher t ON a.approved_by = t.teacher_ic
               WHERE s.student_class = ?
               ORDER BY a.created_at DESC";
@@ -138,9 +139,10 @@ if ($user_role === 'teacher' && $teacherClass) {
     $stmt->execute();
     $result = $stmt->get_result();
 } elseif ($user_role === 'admin') {
-    $query = "SELECT a.*, s.student_fname, s.student_class, t.teacher_fname as approved_by_name
+    $query = "SELECT a.*, s.student_fname, s.student_class, c.class_name, t.teacher_fname as approved_by_name
               FROM cocu_activities a
               JOIN student s ON a.student_ic = s.student_ic
+              LEFT JOIN class c ON s.student_class = c.class_id
               LEFT JOIN teacher t ON a.approved_by = t.teacher_ic
               ORDER BY a.created_at DESC";
 
@@ -252,6 +254,7 @@ if ($user_role === 'teacher') {
                         <th>Status</th>
                         <th>Disahkan Oleh</th>
                         <th>Tarikh Disahkan</th>
+                        <th>Catatan Penolakan</th>
                         <th>Tindakan</th>
                     </tr>
                 </thead>
@@ -259,7 +262,7 @@ if ($user_role === 'teacher') {
                     <?php while ($row = $result->fetch_assoc()): ?>
                         <tr>
                             <td><?= htmlspecialchars($row['student_fname']) ?></td>
-                            <td><?= htmlspecialchars($row['student_class']) ?></td>
+                            <td><?= htmlspecialchars($row['class_name'] ?? 'Kelas ' . $row['student_class']) ?></td>
                             <td><?= htmlspecialchars($row['student_ic']) ?></td>
                             <td><?= htmlspecialchars($row['activity_name']) ?></td>
                             <td><?= htmlspecialchars($row['activity_date']) ?></td>
@@ -311,6 +314,15 @@ if ($user_role === 'teacher') {
                             <td><?= ucfirst($row['approval_status']) ?></td>
                             <td><?= htmlspecialchars($row['approved_by_name'] ?? '-') ?></td>
                             <td><?= $row['approved_at'] ? date('Y-m-d H:i', strtotime($row['approved_at'])) : '-' ?></td>
+                            <td>
+                                <?php if ($row['approval_status'] === 'rejected' && !empty($row['rejection_remarks'])): ?>
+                                    <span title="<?= htmlspecialchars($row['rejection_remarks']) ?>" style="cursor: help; color: #dc3545;">
+                                        <?= strlen($row['rejection_remarks']) > 30 ? htmlspecialchars(substr($row['rejection_remarks'], 0, 30)) . '...' : htmlspecialchars($row['rejection_remarks']) ?>
+                                    </span>
+                                <?php else: ?>
+                                    -
+                                <?php endif; ?>
+                            </td>
                             <td>
                                 <?php if (in_array($user_role, ['teacher', 'admin']) && $row['approval_status'] === 'rejected'): ?>
                                     <form method="post" style="display:inline;">

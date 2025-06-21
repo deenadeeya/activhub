@@ -6,7 +6,7 @@ include '../includes/header.php';
 // Access control logic
 $student_ic = null;
 if (!isset($_SESSION['user_ic']) || !isset($_SESSION['user_role'])) {
-    header("Location: login.php?expired=true");
+    header("Location: ../auth/login.php?expired=true");
     exit;
 }
 
@@ -22,18 +22,21 @@ if ($_SESSION['user_role'] === 'student') {
     $stmt->execute();
     $result = $stmt->get_result();
     if ($result->num_rows === 0) {
-        // Not allowed
-        echo "<script>alert('Akses ditolak. Anda hanya boleh melihat murid dalam kelas anda.');window.location.href='studentList.php';</script>";
+        // Not allowed        echo "<script>alert('Akses ditolak. Anda hanya boleh melihat murid dalam kelas anda.');window.location.href='../student/studentList.php';</script>";
         exit;
     }
 } else {
     // Not allowed
-    header("Location: login.php?expired=true");
+    header("Location: ../auth/login.php?expired=true");
     exit;
 }
 
 if (!isset($_GET['id'])) {
-    header("Location: viewstudentCocurricular.php");
+    $redirect_url = '../student/viewstudentCocurricular.php';
+    if ($_SESSION['user_role'] === 'teacher' && isset($_GET['student_ic'])) {
+        $redirect_url .= '?student_ic=' . urlencode($_GET['student_ic']);
+    }
+    header("Location: " . $redirect_url);
     exit;
 }
 
@@ -50,7 +53,11 @@ $activity = $result->fetch_assoc();
 $stmt->close();
 
 if (!$activity) {
-    header("Location: viewstudentCocurricular.php");
+    $redirect_url = '../student/viewstudentCocurricular.php';
+    if ($_SESSION['user_role'] === 'teacher' && isset($_GET['student_ic'])) {
+        $redirect_url .= '?student_ic=' . urlencode($_GET['student_ic']);
+    }
+    header("Location: " . $redirect_url);
     exit;
 }
 
@@ -70,16 +77,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['submit_competition'])
     $activity_name = trim($_POST['activity_name']);
     $activity_date = $_POST['activity_date'];
     $activity_location = trim($_POST['activity_location']);
-    $org = trim($_POST['org']);
-
-    // Handle file upload (optional: only update if a new file is uploaded)
+    $org = trim($_POST['org']);    // Handle file upload (optional: only update if a new file is uploaded)
     $cert_path = $activity['cert_path'];
     if (isset($_FILES['cert']) && $_FILES['cert']['error'] === UPLOAD_ERR_OK) {
-        $upload_dir = 'uploads/';
+        $upload_dir = '../assets/uploads/certificates/';
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0777, true);
+        }
         $filename = uniqid() . '_' . basename($_FILES['cert']['name']);
         $target_file = $upload_dir . $filename;
         if (move_uploaded_file($_FILES['cert']['tmp_name'], $target_file)) {
-            $cert_path = $target_file;
+            $cert_path = 'assets/uploads/certificates/' . $filename; // Store relative path from root
         }
     }
 
@@ -123,10 +131,9 @@ $pending_count = 0;
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Edit Aktiviti - SRIAAWP ActivHub</title>
-  <link href="http://fonts.googleapis.com/css?family=Lato:300,400,700" rel="stylesheet" type="text/css">
-  <link rel="stylesheet" href="../css/cocurricular.css" />
-  <link rel="stylesheet" href="../css/dash.css" />
-  <link rel="stylesheet" href="../css/header&bg.css" />
+  <link href="http://fonts.googleapis.com/css?family=Lato:300,400,700" rel="stylesheet" type="text/css">  <link rel="stylesheet" href="../assets/css/cocurricular.css" />
+  <link rel="stylesheet" href="../assets/css/dash.css" />
+  <link rel="stylesheet" href="../assets/css/header&bg.css" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
   <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
 
@@ -264,10 +271,9 @@ $pending_count = 0;
 </head>
 
 <body>
-
   <header>
     <div class="logo-section">
-      <img src="../img/logo.png" alt="Logo" />
+      <img src="../assets/img/logo.png" alt="Logo" />
       <div class="logo-text">
         <span>SRIAAWP ActivHub</span>
         <?php include '../includes/navlinks.php'; ?>
@@ -277,8 +283,7 @@ $pending_count = 0;
       <div class="user-section">
         <span class="admin-text"><?php echo strtoupper($teacher['teacher_fname']); ?></span><br>
         <span class="welcome-text">Selamat Kembali!</span>
-      </div>
-      <button onclick="location.href='approve_form.php'" style="position: relative; background: none; border: none; cursor: pointer;">
+      </div>      <button onclick="location.href='../forms/approve_form.php'" style="position: relative; background: none; border: none; cursor: pointer;">
         <span class="material-symbols-outlined icon" style="font-size: 28px; color: white;">
           notifications
         </span>
@@ -301,10 +306,16 @@ $pending_count = 0;
           <?php echo $success_message; ?>
         </div>
       </div>
-    <?php endif; ?>
-    <?php if ($error_message) echo "<p style='color:red;'>$error_message</p>"; ?>
+    <?php endif; ?>    <?php if ($error_message) echo "<p style='color:red;'>$error_message</p>"; ?>
 
-    <button class="btn-red" onClick="location.href='viewstudentCocurricular.php';">KEMBALI</button>
+    <?php 
+    // Build the correct return URL based on user role
+    $return_url = '../student/viewstudentCocurricular.php';
+    if ($_SESSION['user_role'] === 'teacher' && isset($_GET['student_ic'])) {
+        $return_url .= '?student_ic=' . urlencode($_GET['student_ic']);
+    }
+    ?>
+    <button class="btn-red" onClick="location.href='<?= $return_url ?>';">KEMBALI</button>
 
     <div class="empty-space"></div>
     <div class="act-card activity-form-card">
@@ -381,12 +392,25 @@ $pending_count = 0;
                 style="display:<?= (!in_array($activity['ach'], ['Penyertaan','Johan','Naib Johan','Ketiga','Saguhati']) && !empty($activity['ach']))?'inline-block':'none'; ?>; margin-top:5px;"
                 value="<?= (!in_array($activity['ach'], ['Penyertaan','Johan','Naib Johan','Ketiga','Saguhati'])) ? htmlspecialchars($activity['ach']) : '' ?>">
             </label>
-          </li>
-          <li>
+          </li>          <li>
             <label><strong>Sijil (PDF):</strong>
               <input type="file" name="cert" accept="application/pdf">
               <?php if (!empty($activity['cert_path'])): ?>
-                <br><a href="<?= htmlspecialchars($activity['cert_path']) ?>" target="_blank" style="color:#064789;">[Lihat Sijil]</a>
+                <?php 
+                // Handle certificate path display
+                $cert_path = $activity['cert_path'];
+                $display_path = '';
+                
+                // Check if path is already a full relative path
+                if (strpos($cert_path, 'assets/') === 0) {
+                    $display_path = '../' . $cert_path;
+                } else {
+                    // Handle legacy paths or simple filenames
+                    $filename = basename($cert_path);
+                    $display_path = '../assets/uploads/certificates/' . $filename;
+                }
+                ?>
+                <br><a href="<?= htmlspecialchars($display_path) ?>" target="_blank" style="color:#064789;">[Lihat Sijil]</a>
               <?php endif; ?>
             </label>
           </li>

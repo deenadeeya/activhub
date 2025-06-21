@@ -42,12 +42,21 @@ if (!$classResult || mysqli_num_rows($classResult) == 0) {
     }
 
     // Handle cancellation action
-    if (isset($_POST['cancel']) && isset($_POST['activity_id'])) {
+    if (isset($_POST['cancel']) && isset($_POST['activity_id']) && isset($_POST['rejection_remarks'])) {
         $activity_id = $_POST['activity_id'];
+        $rejection_remarks = mysqli_real_escape_string($conn, $_POST['rejection_remarks']);
+        $currentDateTime = date('Y-m-d H:i:s');
 
         $updateQuery = "
-            UPDATE cocu_activities SET approval_status = 'rejected', approved_by = NULL, approved_at = NULL,notification_read = 0 WHERE id = '$activity_id'
-    ";
+            UPDATE cocu_activities 
+            SET 
+                approval_status = 'rejected', 
+                approved_by = '$teacher_ic', 
+                approved_at = '$currentDateTime',
+                rejection_remarks = '$rejection_remarks',
+                notification_read = 0 
+            WHERE id = '$activity_id'
+        ";
         mysqli_query($conn, $updateQuery);
     }
 
@@ -182,6 +191,111 @@ if (isset($teacherClass)) {
         .modal-button:hover {
             background-color: #45a049;
         }
+
+        /* Action button styles matching viewstudentCocurricular.php */
+        .btn-green {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 12px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-green:hover {
+            background-color: #218838;
+        }
+
+        .btn-red {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 12px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            margin-left: 5px;
+        }
+
+        .btn-red:hover {
+            background-color: #c82333;
+        }
+
+        /* Rejection modal styles */
+        .rejection-modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .rejection-modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 10px;
+        }
+
+        .rejection-modal h3 {
+            color: #dc3545;
+            margin-bottom: 15px;
+        }
+
+        .rejection-modal textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        .rejection-modal-buttons {
+            margin-top: 15px;
+            text-align: right;
+        }
+
+        .rejection-modal-buttons button {
+            margin-left: 10px;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .modal-cancel-btn {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .modal-cancel-btn:hover {
+            background-color: #545b62;
+        }
+
+        .modal-reject-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .modal-reject-btn:hover {
+            background-color: #c82333;
+        }
     </style>
 </head>
 
@@ -207,7 +321,7 @@ if (isset($teacherClass)) {
 
         <header>
             <div class="logo-section">
-                <img src="../img/logo.png" alt="Logo" />
+                <img src="../assets/img/logo.png" alt="Logo" />
                 <div class="logo-text">
                     <span>SRIAAWP ActivHub</span>
                     <?php include '../includes/navlinks.php'; ?>
@@ -237,7 +351,7 @@ if (isset($teacherClass)) {
                     ?>
                     <span class="welcome-text">Selamat Kembali!</span>
                 </div>
-                                <button onclick="location.href='../approve_form.php'" style="position: relative; background: none; border: none; cursor: pointer;">
+                                <button onclick="location.href='approve_form.php'" style="position: relative; background: none; border: none; cursor: pointer;">
                     <span class="material-symbols-outlined icon" style="font-size: 28px; color: white;">
                     notifications
                     </span>
@@ -279,15 +393,52 @@ if (isset($teacherClass)) {
                                 <td><?= htmlspecialchars($row['award']) ?></td>
                                 <td>
                                     <?php if (!empty($row['cert_path'])): ?>
-                                        <a href="<?php echo $row['cert_path']; ?>" target="_blank">[Sijil]</a>
+                                        <?php 
+                                        // Handle certificate path - files are in assets/uploads/certificates/
+                                        $cert_path = $row['cert_path'];
+                                        $filename = basename($cert_path);
+                                        
+                                        // Try different possible paths including certificates subfolder
+                                        $possible_paths = [
+                                            '../assets/uploads/certificates/' . $filename,
+                                            '../assets/uploads/' . $filename,
+                                            '../assets/img/uploads/' . $filename,
+                                            '../uploads/certificates/' . $filename,
+                                            '../uploads/' . $filename,
+                                            $cert_path // original path as fallback
+                                        ];
+                                        
+                                        $found_path = null;
+                                        foreach ($possible_paths as $test_path) {
+                                            // For file existence check, convert relative path to absolute
+                                            if (strpos($test_path, '../') === 0) {
+                                                $absolute_path = __DIR__ . '/' . $test_path;
+                                            } else {
+                                                $absolute_path = __DIR__ . '/../' . $test_path;
+                                            }
+                                            
+                                            if (file_exists($absolute_path)) {
+                                                $found_path = $test_path;
+                                                break;
+                                            }
+                                        }
+                                        
+                                        if ($found_path): ?>
+                                            <a href="<?= htmlspecialchars($found_path) ?>" target="_blank">[Sijil]</a>
+                                        <?php else: ?>
+                                            <!-- Default to certificates folder -->
+                                            <a href="<?= htmlspecialchars('../assets/uploads/certificates/' . $filename) ?>" target="_blank">[Sijil]</a>
+                                        <?php endif; ?>
+                                    <?php else: ?>
+                                        Tiada
                                     <?php endif; ?>
                                 </td>
                                 <td>
                                     <form method="post" style="display:inline;">
                                         <input type="hidden" name="activity_id" value="<?= $row['id'] ?>">
-                                        <button type="submit" name="approve">Luluskan</button>
-                                        <button type="submit" name="cancel" style="margin-left: 10px;">Batalkan</button>
+                                        <button type="submit" name="approve" class="btn-green">Luluskan</button>
                                     </form>
+                                    <button type="button" class="btn-red" onclick="openRejectionModal(<?= $row['id'] ?>, '<?= htmlspecialchars($row['student_fname']) ?>', '<?= htmlspecialchars($row['activity_name']) ?>')">Batalkan</button>
                                 </td>
                             </tr>
                         <?php endwhile ?>
@@ -297,6 +448,47 @@ if (isset($teacherClass)) {
                 <p>Tiada borang yang belum diluluskan.</p>
             <?php endif ?>
         </div>
+
+        <!-- Rejection Modal -->
+        <div id="rejectionModal" class="rejection-modal">
+            <div class="rejection-modal-content">
+                <h3>Sebab Penolakan</h3>
+                <p>Pelajar: <span id="modalStudentName"></span></p>
+                <p>Aktiviti: <span id="modalActivityName"></span></p>
+                <form id="rejectionForm" method="post">
+                    <input type="hidden" id="modalActivityId" name="activity_id" value="">
+                    <input type="hidden" name="cancel" value="1">
+                    <label for="rejectionRemarks"><strong>Catatan Penolakan:</strong></label>
+                    <textarea id="rejectionRemarks" name="rejection_remarks" placeholder="Sila nyatakan sebab penolakan aktiviti ini..." required></textarea>
+                    <div class="rejection-modal-buttons">
+                        <button type="button" class="modal-cancel-btn" onclick="closeRejectionModal()">Batal</button>
+                        <button type="submit" class="modal-reject-btn">Tolak Aktiviti</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            function openRejectionModal(activityId, studentName, activityName) {
+                document.getElementById('modalActivityId').value = activityId;
+                document.getElementById('modalStudentName').textContent = studentName;
+                document.getElementById('modalActivityName').textContent = activityName;
+                document.getElementById('rejectionRemarks').value = '';
+                document.getElementById('rejectionModal').style.display = 'block';
+            }
+
+            function closeRejectionModal() {
+                document.getElementById('rejectionModal').style.display = 'none';
+            }
+
+            // Close modal when clicking outside of it
+            window.onclick = function(event) {
+                const modal = document.getElementById('rejectionModal');
+                if (event.target === modal) {
+                    closeRejectionModal();
+                }
+            }
+        </script>
     <?php endif ?>
 </body>
 

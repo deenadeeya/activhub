@@ -21,8 +21,7 @@ if ($_SESSION['user_role'] === 'student') {
     $stmt = $conn->prepare($query);
     $stmt->bind_param("ss", $student_ic, $teacher_ic);
     $stmt->execute();
-    $result = $stmt->get_result();
-    if ($result->num_rows === 0) {
+    $result = $stmt->get_result();    if ($result->num_rows === 0) {
         // Not allowed
         echo "<script>alert('Akses ditolak. Anda hanya boleh melihat murid dalam kelas anda.');window.location.href='studentList.php';</script>";
         exit;
@@ -412,11 +411,10 @@ $activity_result = $stmt->get_result();
                                 <?php else: ?>
                                     -
                                 <?php endif; ?>
-                            </td>
-                            <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'teacher'): ?>
+                            </td>                            <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'teacher'): ?>
                                 <td>
-                                    <a href="edit_activity.php?id=<?= $activity['id']; ?>&student_ic=<?= $student_ic; ?>" class="btn-darkblue" style="padding:4px 12px; font-size:0.95em;">Edit</a>
-                                    <a href="delete_activity.php?id=<?= $activity['id']; ?>&student_ic=<?= $student_ic; ?>" class="btn-red" style="padding:4px 12px; font-size:0.95em;" onclick="return confirm('Padam aktiviti ini?');">Padam</a>
+                                    <a href="../cocurricular/edit_activity.php?id=<?= $activity['id']; ?>&student_ic=<?= $student_ic; ?>" class="btn-darkblue" style="padding:4px 12px; font-size:0.95em;">Edit</a>
+                                    <a href="../cocurricular/delete_activity.php?id=<?= $activity['id']; ?>&student_ic=<?= $student_ic; ?>" class="btn-red" style="padding:4px 12px; font-size:0.95em;" onclick="return confirm('Padam aktiviti ini?');">Padam</a>
                                 </td>
                             <?php endif; ?>
                         </tr>

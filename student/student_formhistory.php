@@ -129,6 +129,8 @@ mysqli_query($conn, $update_query);
                 <th>Status</th>
                 <th>Disahkan Oleh</th>
                 <th>Tarikh Disahkan</th>
+                <th>Catatan Penolakan</th>
+                <th>Tindakan</th>
                 </tr>
             </thead>
             <tbody>
@@ -208,11 +210,27 @@ mysqli_query($conn, $update_query);
                         ?>
                     </td>
                     <td><?= $row['approved_at'] ? date('Y-m-d H:i', strtotime($row['approved_at'])) : '-' ?></td>
+                    <td>
+                        <?php if ($row['approval_status'] === 'rejected' && !empty($row['rejection_remarks'])): ?>
+                            <span style="color: #dc3545; font-weight: bold;">
+                                <?= htmlspecialchars($row['rejection_remarks']) ?>
+                            </span>
+                        <?php else: ?>
+                            -
+                        <?php endif; ?>
+                    </td>
+                    <td>
+                        <?php if ($row['approval_status'] === 'rejected'): ?>
+                            <a href="student_cocuactivityform.php?edit_id=<?= $row['id'] ?>" class="btn-edit" style="background-color: #007bff; color: white; padding: 4px 8px; text-decoration: none; border-radius: 3px; font-size: 0.85em;">Edit</a>
+                        <?php else: ?>
+                            -
+                        <?php endif; ?>
+                    </td>
                     </tr>
                 <?php endwhile; ?>
                 <?php else: ?>
                 <tr>
-                    <td colspan="9" style="text-align: center;">Tiada rekod aktiviti ditemui.</td>
+                    <td colspan="12" style="text-align: center;">Tiada rekod aktiviti ditemui.</td>
                 </tr>
                 <?php endif; ?>
             </tbody>
