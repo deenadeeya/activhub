@@ -193,6 +193,7 @@ if ($user_role === 'teacher') {
     <link rel="stylesheet" href="../assets/css/header&bg.css" />
     <link rel="stylesheet" href="../assets/css/cocurricular.css" />
     <link rel="stylesheet" href="../assets/css/button.css" />
+    <link rel="stylesheet" href="../assets/css/history_table.css" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
 </head>
@@ -236,7 +237,7 @@ if ($user_role === 'teacher') {
         <div class="btn-yellow"><a href="<?= $user_role === 'teacher' ? '../teacher/teacher_dashboard.php' : '../admin/admin_dashboard.php' ?>">← Kembali ke Papan Pemuka</a></div>
 
         <?php if ($result->num_rows > 0): ?>
-            <table border="1" cellpadding="10">
+            <table class="history-table audit-table">
                 <thead>
                     <tr>
                         <th>Nama Pelajar</th>

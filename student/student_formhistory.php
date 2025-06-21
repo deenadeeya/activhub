@@ -55,42 +55,9 @@ mysqli_query($conn, $update_query);
     <title>Sejarah Permohonan Ko-kurikulum</title>
     <link rel="stylesheet" href="../assets/css/header&bg.css" />
     <link rel="stylesheet" href="../assets/css/button.css" />
+    <link rel="stylesheet" href="../assets/css/history_table.css" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
-    <style>
-    /* Stylish table for history */
-    .history-table {
-        width: 80%;
-        border-collapse: collapse;
-        margin: 24px 0;
-        font-size: 1rem;
-        font-family: Arial, sans-serif;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.07);
-        background: #fff;
-    }
-    .history-table thead tr {
-        background-color: #064789;
-        color: #fff;
-        text-align: left;
-    }
-    .history-table th, .history-table td {
-        padding: 12px 15px;
-        border: 1px solid #e0e0e0;
-    }
-    .history-table tbody tr {
-        background-color: #f9f9f9;
-    }
-    .history-table tbody tr:nth-child(even) {
-        background-color: #f1f6fa;
-    }
-    .history-table tbody tr:hover {
-        background-color: #e3eefd;
-    }
-    .history-table a {
-        color: #064789;
-        text-decoration: underline;
-    }
-    </style>
 </head>
 <body>
     <header>
@@ -149,7 +116,7 @@ mysqli_query($conn, $update_query);
     <div class="btn-yellow" ><a href="student_dashboard.php">← Kembali ke Papan Pemuka</a></div>
 
     <?php if (mysqli_num_rows($history_result) > 0): ?>
-        <table class="history-table" border="1" cellpadding="10" cellspacing="0">
+        <table class="history-table student-form-table" border="1" cellpadding="10" cellspacing="0">
             <thead>
                 <tr>
                 <th>Tarikh</th>

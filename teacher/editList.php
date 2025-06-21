@@ -1,7 +1,7 @@
 <?php
 require_once '../includes/session_check.php';
-include '../connect.php';
-include '../header.php';
+include '../config/connect.php';
+include '../includes/header.php';
 ?>
 
 <!DOCTYPE html>
@@ -10,19 +10,19 @@ include '../header.php';
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Senarai Guru - SRIAAWP ActivHub</title>
-  <link rel="stylesheet" href="../css/teacherList.css" />
+  <link rel="stylesheet" href="../assets/css/teacherList.css" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-  <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+  <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
 </head>
 <body>
 
 <header>
   <div class="logo-section">
-    <img src="../img/logo.png" alt="Logo" />
+    <img src="../assets/img/logo.png" alt="Logo" />
     <div class="logo-text">
       <span>SRIAAWP ActivHub</span>
-      <?php include '../navlinks.php'; ?>
+      <?php include '../includes/navlinks.php'; ?>
     </div>
   </div>
 
