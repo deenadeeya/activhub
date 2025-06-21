@@ -1,5 +1,5 @@
 <?php
-include '../connect.php';
+include '../config/connect.php';
 session_start();
 
 // Check if user is logged in and is a teacher

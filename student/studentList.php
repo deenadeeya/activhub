@@ -75,7 +75,7 @@ if ($teacher_class_id) {
         <div id="accessDeniedModal" class="modal" style="display: block;">
             <div class="modal-content">
                 <div class="modal-message">Akses ditolak. Anda bukan guru ketua kelas.</div>
-                <button class="modal-button" onclick="window.location.href='teacher/teacher_dashboard.php'">OK</button>
+                <button class="modal-button" onclick="window.location.href='../teacher/teacher_dashboard.php'">OK</button>
             </div>
         </div>
     <?php endif; ?>
@@ -105,7 +105,7 @@ if ($teacher_class_id) {
                 ?>
                 <span class="welcome-text">Selamat Kembali!</span>
             </div>
-                <button onclick="location.href='../approve_form.php'" style="position: relative; background: none; border: none; cursor: pointer;">
+                <button onclick="location.href='../forms/approve_form.php'" style="position: relative; background: none; border: none; cursor: pointer;">
                     <span class="material-symbols-outlined icon" style="font-size: 28px; color: white;">
                     notifications
                     </span>
@@ -126,7 +126,7 @@ if ($teacher_class_id) {
                         <h2 class="color:white; ">Senarai Murid - <?php echo $class['class_name']; ?></h2>
                         <div class="button-group">
                             <button class="btn-yellow" onclick="window.location.href='student_add.php'">Tambah Pelajar Baru</button>
-                            <button class="btn-red" onclick="location.href='teacher/teacher_dashboard.php'">Kembali</button>
+                            <button class="btn-red" onclick="location.href='../teacher/teacher_dashboard.php'">Kembali</button>
                         </div>
                     </div>
                     
@@ -160,7 +160,7 @@ if ($teacher_class_id) {
                 id: id
             };
 
-            fetch('function/get_student.php', {
+            fetch('../function/get_student.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -196,7 +196,7 @@ if ($teacher_class_id) {
                 contact_num: contact_num
             };
 
-            fetch('function/student_update.php', {
+            fetch('../function/student_update.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -218,7 +218,7 @@ if ($teacher_class_id) {
         }
 
         function cancel(id) {
-            fetch('function/student_list.php', {
+            fetch('../function/student_list.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

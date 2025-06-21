@@ -240,10 +240,8 @@ $activity_result = $stmt->get_result();
         <h1 class="profile-title">PROFIL KOKURIKULUM</h1>
 
         <?php if (isset($success_message)) echo "<p style='color:green;'>$success_message</p>"; ?>
-        <?php if (isset($error_message)) echo "<p style='color:red;'>$error_message</p>"; ?>
-
-        <?php if (isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'teacher'])): ?>
-            <button class="btn-yellow" onClick="location.href='student_addcocuprofile.php';">TAMBAH PROFIL KOKURIKULUM</button>
+        <?php if (isset($error_message)) echo "<p style='color:red;'>$error_message</p>"; ?>        <?php if (isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'teacher'])): ?>
+            <button class="btn-yellow" onClick="location.href='student_addcocuprofile.php<?php echo ($_SESSION['user_role'] === 'teacher') ? '?student_ic=' . urlencode($student_ic) : ''; ?>';">TAMBAH PROFIL KOKURIKULUM</button>
         <?php endif; ?>
         <section class="card-section">
             <div class="card left-card">
@@ -371,10 +369,46 @@ $activity_result = $stmt->get_result();
                             <td><?php echo htmlspecialchars($activity['activity_location']); ?></td>
                             <td><?php echo htmlspecialchars($activity['activity_category']); ?></td>
                             <td><?php echo htmlspecialchars($activity['award']); ?></td>
-                            <td><?php echo htmlspecialchars($activity['ach']); ?></td>
-                            <td>
+                            <td><?php echo htmlspecialchars($activity['ach']); ?></td>                            <td>
                                 <?php if (!empty($activity['cert_path'])): ?>
-                                    <a href="<?php echo $activity['cert_path']; ?>" target="_blank" style="color:#064789;">[Sijil]</a>
+                                    <?php 
+                                    // Handle certificate path - files are in assets/uploads/certificates/
+                                    $cert_path = $activity['cert_path'];
+                                    $filename = basename($cert_path);
+                                    
+                                    // Try different possible paths including certificates subfolder
+                                    $possible_paths = [
+                                        '../assets/uploads/certificates/' . $filename,
+                                        '../assets/uploads/' . $filename,
+                                        '../assets/img/uploads/' . $filename,
+                                        '../uploads/certificates/' . $filename,
+                                        '../uploads/' . $filename,
+                                        $cert_path // original path as fallback
+                                    ];
+                                    
+                                    $found_path = null;
+                                    foreach ($possible_paths as $test_path) {
+                                        // For file existence check, convert relative path to absolute
+                                        if (strpos($test_path, '../') === 0) {
+                                            $absolute_path = __DIR__ . '/' . $test_path;
+                                        } else {
+                                            $absolute_path = __DIR__ . '/../' . $test_path;
+                                        }
+                                        
+                                        if (file_exists($absolute_path)) {
+                                            $found_path = $test_path;
+                                            break;
+                                        }
+                                    }
+                                    
+                                    if ($found_path): ?>
+                                        <a href="<?php echo htmlspecialchars($found_path); ?>" target="_blank" style="color:#064789;">[Sijil]</a>
+                                        <span class="print-certificate-label" style="display: none;">[Sijil]</span>
+                                    <?php else: ?>
+                                        <!-- Default to certificates folder -->
+                                        <a href="<?php echo htmlspecialchars('../assets/uploads/certificates/' . $filename); ?>" target="_blank" style="color:#064789;">[Sijil]</a>
+                                        <span class="print-certificate-label" style="display: none;">[Sijil]</span>
+                                    <?php endif; ?>
                                 <?php else: ?>
                                     -
                                 <?php endif; ?>

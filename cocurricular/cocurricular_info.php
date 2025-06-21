@@ -296,6 +296,21 @@ $nonMemberResult = $nonMemberQuery->get_result();
             </ul>
 
             <div class="section-title">AHLI KUMPULAN</div>
+            <?php
+            $role_labels = [
+                'president' => 'Pengerusi',
+                'vice_president' => 'Naib Pengerusi',
+                'secretary' => 'Setiausaha',
+                'vice_secretary' => 'Naib Setiausaha',
+                'treasurer' => 'Bendahari',
+                'vice_treasurer' => 'Naib Bendahari',
+                'exco_y6' => 'Exco Tahun 6',
+                'exco_y5' => 'Exco Tahun 5',
+                'exco_y4' => 'Exco Tahun 4',
+                'member' => 'Ahli',
+                '' => 'Ahli'
+            ];
+            ?>
             <table class="member-table">
                 <thead>
                     <tr>
@@ -311,7 +326,7 @@ $nonMemberResult = $nonMemberQuery->get_result();
                     <?php while ($member = $memberResult->fetch_assoc()): ?>
                         <tr>
                             <td><?= htmlspecialchars($member['student_fname']) ?></td>
-                            <td><?= htmlspecialchars($member['membership_role'] ?: 'Ahli') ?></td>
+                            <td><?= htmlspecialchars($role_labels[$member['membership_role']] ?? 'Ahli') ?></td>
                             <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'admin' || $_SESSION['user_role'] === 'teacher')): ?>
                                 <td>
                                     <form method="POST" onsubmit="return confirm('Remove this member?');" style="margin:0;">
