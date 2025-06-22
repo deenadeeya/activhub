@@ -157,14 +157,14 @@ class NotificationService {
             'pending' => 'dalam semakan'
         ];
         
-        $title = "Status Aktiviti Dikemaskini";
+        $title = "Status Borangg Aktiviti Dikemaskini";
         
         if (!empty($custom_message)) {
             // Use custom message (like rejection with reasons)
             $message = $custom_message;
         } else {
             // Use default message
-            $message = "Aktiviti '{$activity_name}' telah {$status_text[$status]}.";
+            $message = "Borang Aktiviti '{$activity_name}' telah {$status_text[$status]}.";
         }
         
         $this->createNotification($user_ic, 'student', 'activity', $title, $message);
