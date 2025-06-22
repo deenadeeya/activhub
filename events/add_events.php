@@ -4,14 +4,34 @@ require_once '../includes/NotificationService.php';
 include '../config/connect.php';
 include '../includes/header.php';
 
-// Check if user is logged in as teacher
-if (!isset($_SESSION['user_ic']) || $_SESSION['user_role'] !== 'teacher') {
+// Check if user is logged in as teacher or admin
+if (!isset($_SESSION['user_ic']) || ($_SESSION['user_role'] !== 'teacher' && $_SESSION['user_role'] !== 'admin')) {
     header("Location: ../auth/login.php?expired=true");
     exit();
 }
 
 $success = "";
 $error = "";
+
+// Fetch user data based on role
+$teacher = null;
+$admin_name = null;
+
+if ($_SESSION['user_role'] === 'teacher') {
+    // Fetch teacher data
+    $teacher_ic = $_SESSION['user_ic'];
+    $teacher_query = "SELECT * FROM teacher WHERE teacher_ic = ?";
+    $stmt = $conn->prepare($teacher_query);
+    $stmt->bind_param("s", $teacher_ic);
+    $stmt->execute();
+    $teacher_result = $stmt->get_result();
+    if ($teacher_result && $teacher_result->num_rows > 0) {
+        $teacher = $teacher_result->fetch_assoc();
+    }
+} elseif ($_SESSION['user_role'] === 'admin') {
+    // For admin, we'll use the session user_ic as the name
+    $admin_name = $_SESSION['user_ic'];
+}
 
 // Fetch cocurricular groups
 $groups = [];
@@ -132,7 +152,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-// Get teacher's class id for notification count
+// Get teacher's class id for notification count (only for teachers)
 $teacher_class_id = null;
 if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'teacher') {
     $teacher_ic = $_SESSION['user_ic'];
@@ -146,19 +166,28 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'teacher') {
 
 // Pending approval count
 $pending_count = 0;
-if ($teacher_class_id) {
-    $pending_query = "
+if (isset($_SESSION['user_role'])) {
+    if ($_SESSION['user_role'] === 'teacher' && $teacher_class_id) {
+        // For teachers, only show pending from their class
+        $pending_query = "
             SELECT COUNT(*) AS total_pending
             FROM cocu_activities ca
             JOIN student s ON ca.student_ic = s.student_ic
             WHERE ca.approval_status = 'pending' AND s.student_class = ?
         ";
-    $stmt = $conn->prepare($pending_query);
-    $stmt->bind_param("s", $teacher_class_id);
-    $stmt->execute();
-    $pending_result = $stmt->get_result();
-    $pending_data = $pending_result->fetch_assoc();
-    $pending_count = $pending_data['total_pending'];
+        $stmt = $conn->prepare($pending_query);
+        $stmt->bind_param("s", $teacher_class_id);
+        $stmt->execute();
+        $pending_result = $stmt->get_result();
+        $pending_data = $pending_result->fetch_assoc();
+        $pending_count = $pending_data['total_pending'];
+    } elseif ($_SESSION['user_role'] === 'admin') {
+        // For admin, show all pending approvals
+        $pending_query = "SELECT COUNT(*) AS total_pending FROM cocu_activities WHERE approval_status = 'pending'";
+        $pending_result = mysqli_query($conn, $pending_query);
+        $pending_data = mysqli_fetch_assoc($pending_result);
+        $pending_count = $pending_data['total_pending'];
+    }
 }
 ?>
 
@@ -251,7 +280,7 @@ if ($teacher_class_id) {
         <?php
         if (isset($_SESSION['user_role'])) {
             if ($_SESSION['user_role'] === 'admin') {
-                echo '<span class="admin-text">' . strtoupper($_SESSION['admin_name'] ?? 'ADMIN') . '</span><br>';
+                echo '<span class="admin-text">' . strtoupper($admin_name ?? $_SESSION['user_ic']) . '</span><br>';
             } elseif ($_SESSION['user_role'] === 'teacher' && !empty($teacher['teacher_fname'])) {
                 echo '<span class="admin-text">' . strtoupper($teacher['teacher_fname']) . '</span><br>';
             } elseif ($_SESSION['user_role'] === 'student' && !empty($student['student_fname'])) {

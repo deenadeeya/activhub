@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: application/json');
-require_once '../../connect.php';
+require_once '../../config/connect.php';
 
 $input = json_decode(file_get_contents("php://input"), true);
 $response = ['status' => 0, 'error' => ''];
@@ -38,7 +38,7 @@ try {
 
         // 2. Update teacher basic info
         $update_fields = ["teacher_fname = ?", "teacher_uname = ?"];
-        $params = [$name, $uname];
+        $params = [$name, $teacher_uname];
         $types = "ss";
 
         if (!empty($password)) {

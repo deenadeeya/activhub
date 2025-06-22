@@ -134,12 +134,12 @@ $result = mysqli_query($conn, $sql);
             const formData = {
                 id: id,
                 name: document.querySelector(`input[name="edit_name_${id}"]`).value,
-                uname: document.querySelector(`input[name="edit_uname_${id}"]`).value,
+                teacher_uname: document.querySelector(`input[name="edit_teacher_uname_${id}"]`).value,
                 password: document.querySelector(`input[name="edit_password_${id}"]`).value,
                 class: document.querySelector(`select[name="class_${id}"]`).value
             };
 
-            if (!formData.name || !formData.uname) {
+            if (!formData.name || !formData.teacher_uname) {
                 alert('Sila isi nama dan username!');
                 return;
             }

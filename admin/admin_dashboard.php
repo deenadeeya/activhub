@@ -98,6 +98,7 @@ $result = $stmt->get_result();
         <button class="btn-yellow" onclick="window.location.href='../forms/audit_history.php'">BORANG SEJARAH</button>
         <button class="btn-yellow" onclick="location.href='admin_list.php'">SENARAI ADMIN</button>
         <button class="btn-yellow" onclick="location.href='admin_classList.php'">SENARAI KELAS</button>
+        <button class="btn-yellow" onclick="location.href='../events/manage_events.php'">URUS ACARA</button>
         <button class="btn-yellow" onclick="location.href='../events/add_events.php'">TAMBAH ACARA KOKURIKULUM</button>
         <button class="btn-yellow" onclick="location.href ='../cocurricular/cocurricular_board.php'">PAPAN KOKURIKULUM</button>
         <form action="../auth/logout.php" method="post">
@@ -112,8 +113,12 @@ $result = $stmt->get_result();
             <strong><?= date("j F Y", strtotime($row['event_start_date'])) ?></strong><br>
             <?= htmlspecialchars($row['event_name']) ?><br>
             Tempat: <?= htmlspecialchars($row['event_venue']) ?><br>
+            <?php if (!empty($row['registration_deadline'])): ?>
             Pendaftaran: Buka sehingga <?= date("j F", strtotime($row['registration_deadline'])) ?><br>
+            <?php endif; ?>
+            <?php if (!empty($row['contact_number'])): ?>
             Hubungi: <?= htmlspecialchars($row['contact_number']) ?><br>
+            <?php endif; ?>
             Penganjur: <?= $row['group_name'] ? htmlspecialchars($row['group_name']) : 'Acara Luar' ?><br>
             <?php
             $start = strtotime($row['event_start_date']);
@@ -136,6 +141,7 @@ $result = $stmt->get_result();
             <p style="color: <?= $color ?>; font-weight: bold;">Status: <?= $status ?></p>
 
             <button class="btn-status-blue" onclick="location.href='../events/event_participants.php?event_id=<?= $row['event_id'] ?>'">Senarai Peserta</button>
+            <button class="btn-status-blue" onclick="location.href='../events/edit_events.php?event_id=<?= $row['event_id'] ?>'">Kemaskini Acara</button>
           </div>
         <?php endwhile; ?>
       </div>

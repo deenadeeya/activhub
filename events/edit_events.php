@@ -7,6 +7,28 @@ include '../includes/header.php';
 $success = "";
 $error = "";
 
+// Fetch user data based on role
+$teacher = null;
+$admin_name = null;
+
+if (isset($_SESSION['user_role'])) {
+    if ($_SESSION['user_role'] === 'teacher') {
+        // Fetch teacher data
+        $teacher_ic = $_SESSION['user_ic'];
+        $teacher_query = "SELECT * FROM teacher WHERE teacher_ic = ?";
+        $stmt = $conn->prepare($teacher_query);
+        $stmt->bind_param("s", $teacher_ic);
+        $stmt->execute();
+        $teacher_result = $stmt->get_result();
+        if ($teacher_result && $teacher_result->num_rows > 0) {
+            $teacher = $teacher_result->fetch_assoc();
+        }
+    } elseif ($_SESSION['user_role'] === 'admin') {
+        // For admin, we'll use the session user_ic as the name
+        $admin_name = $_SESSION['user_ic'];
+    }
+}
+
 // Check if event_id is provided
 if (!isset($_GET['event_id'])) {
     die("ID acara tidak diberikan.");
@@ -181,11 +203,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       </div>
     </div>
     <div class="icon-section">
-      <div class="user-section">
-        <?php
+      <div class="user-section">        <?php
         if (isset($_SESSION['user_role'])) {
             if ($_SESSION['user_role'] === 'admin') {
-                echo '<span class="admin-text">' . strtoupper($_SESSION['admin_name'] ?? 'ADMIN') . '</span><br>';
+                echo '<span class="admin-text">' . strtoupper($admin_name ?? $_SESSION['user_ic']) . '</span><br>';
             } elseif ($_SESSION['user_role'] === 'teacher' && !empty($teacher['teacher_fname'])) {
                 echo '<span class="admin-text">' . strtoupper($teacher['teacher_fname']) . '</span><br>';
             } elseif ($_SESSION['user_role'] === 'student' && !empty($student['student_fname'])) {
