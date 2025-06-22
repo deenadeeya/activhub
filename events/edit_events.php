@@ -1,5 +1,6 @@
 <?php
 require_once '../includes/session_check.php';
+require_once '../includes/NotificationService.php';
 include '../config/connect.php';
 include '../includes/header.php';
 
@@ -62,11 +63,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } elseif ($visibility === 'club_only' && !$group_id) {
         $error = "Untuk acara khas ahli kelab, sila pilih kelab/persatuan penganjur.";    } elseif ($visibility === 'private') {
         $error = "Ciri 'Peribadi' masih dalam pembangunan. Sila gunakan 'Ahli Kelab Sahaja' untuk acara terhad.";
-    } else {
-        $stmt = $conn->prepare("UPDATE events SET event_name=?, event_start_date=?, event_end_date=?, event_venue=?, event_description=?, event_type=?, is_mandatory=?, visibility=?, max_participants=?, registration_deadline=?, contact_number=?, group_id=?, eligible_years=? WHERE event_id=?");
-        $stmt->bind_param("ssssssississii", $event_name, $event_start_date, $event_end_date, $event_venue, $event_description, $event_type, $is_mandatory, $visibility, $max_participants, $registration_deadline, $contact_number, $group_id, $eligible_years, $event_id);
-
-        if ($stmt->execute()) {
+    } else {        $stmt = $conn->prepare("UPDATE events SET event_name=?, event_start_date=?, event_end_date=?, event_venue=?, event_description=?, event_type=?, is_mandatory=?, visibility=?, max_participants=?, registration_deadline=?, contact_number=?, group_id=?, eligible_years=? WHERE event_id=?");
+        $stmt->bind_param("ssssssisisssii", $event_name, $event_start_date, $event_end_date, $event_venue, $event_description, $event_type, $is_mandatory, $visibility, $max_participants, $registration_deadline, $contact_number, $group_id, $eligible_years, $event_id);if ($stmt->execute()) {
+            // 🔥 NEW: Send update notifications to registered participants
+            $notificationService = new NotificationService($conn);
+            
+            // Get all registered students for this event
+            $participants_query = "SELECT student_ic FROM event_registrations WHERE event_id = ?";
+            $participants_stmt = $conn->prepare($participants_query);
+            $participants_stmt->bind_param("i", $event_id);
+            $participants_stmt->execute();
+            $participants_result = $participants_stmt->get_result();
+            
+            $notification_title = "Acara Dikemaskini";
+            $notification_message = "Acara '{$event_name}' telah dikemaskini. Sila semak butiran terkini.";
+            
+            while ($participant = $participants_result->fetch_assoc()) {
+                $notificationService->createNotification(
+                    $participant['student_ic'],
+                    'student',
+                    'event',
+                    $notification_title,
+                    $notification_message,
+                    $event_id,
+                    'events'
+                );
+            }
+            
             $success = "Acara berjaya dikemaskini!";
         } else {
             $error = "Ralat semasa mengemaskini acara: " . $stmt->error;

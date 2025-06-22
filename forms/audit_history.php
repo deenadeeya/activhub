@@ -1,5 +1,6 @@
 <?php
 require_once '../includes/session_check.php';
+require_once '../includes/NotificationService.php';
 
 // Security headers
 header("X-Frame-Options: DENY");
@@ -95,6 +96,14 @@ if (isset($_POST['reapprove']) && isset($_POST['activity_id'])) {
         die("Invalid activity ID");
     }
 
+    // Get activity details before updating for notification
+    $activity_stmt = $conn->prepare("SELECT student_ic, activity_name FROM cocu_activities WHERE id = ?");
+    $activity_stmt->bind_param("i", $activity_id);
+    $activity_stmt->execute();
+    $activity_result = $activity_stmt->get_result();
+    $activity_data = $activity_result->fetch_assoc();
+    $activity_stmt->close();
+
     $now = date('Y-m-d H:i:s');
     $stmt = $conn->prepare("UPDATE cocu_activities SET approval_status = 'approved', approved_by = ?, approved_at = ? WHERE id = ?");
     $stmt->bind_param("ssi", $user_ic, $now, $activity_id);
@@ -104,6 +113,26 @@ if (isset($_POST['reapprove']) && isset($_POST['activity_id'])) {
     }
 
     $stmt->close();
+
+    // 🔥 NEW: Create notification for reapproval
+    if ($activity_data) {
+        $notificationService = new NotificationService($conn);
+        
+        // Custom message for reapproval
+        $title = "Aktiviti Diluluskan Semula";
+        $message = "Good news! Aktiviti '{$activity_data['activity_name']}' telah diluluskan semula setelah semakan. Terima kasih atas kesabaran anda.";
+        
+        $notificationService->createNotification(
+            $activity_data['student_ic'],
+            'student',
+            'activity',
+            $title,
+            $message,
+            $activity_id,
+            'cocu_activities'
+        );
+    }
+
     echo "<script>alert('Permohonan berjaya diluluskan semula.'); window.location.href=window.location.href;</script>";
 }
 

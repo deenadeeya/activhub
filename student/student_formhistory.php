@@ -1,5 +1,6 @@
 <?php
 require_once '../includes/session_check.php';
+require_once '../includes/NotificationService.php';
 include '../config/connect.php';
 include '../includes/header.php';
 
@@ -21,7 +22,10 @@ $history_query = "
 
 $history_result = mysqli_query($conn, $history_query);
 
-// Pending Notification
+// Initialize Notification Service
+$notificationService = new NotificationService($conn);
+
+// Legacy notification count from cocu_activities (keeping for backward compatibility)
 $notif_query = "
   SELECT COUNT(*) AS pending_count 
   FROM cocu_activities 
@@ -31,11 +35,17 @@ $notif_query = "
 ";
 
 $notif_result = mysqli_query($conn, $notif_query);
-$pending_count = 0;
+$legacy_pending_count = 0;
 
 if ($notif_result && $row_pending = mysqli_fetch_assoc($notif_result)) {
-  $pending_count = $row_pending['pending_count'];
+  $legacy_pending_count = $row_pending['pending_count'];
 }
+
+// Get modern notification count
+$modern_notification_count = $notificationService->getUnreadCount($student_ic);
+
+// Total notification count (legacy + modern)
+$total_notification_count = $legacy_pending_count + $modern_notification_count;
 
 // Mark notifications as read for this student
 $update_query = "
@@ -83,31 +93,7 @@ mysqli_query($conn, $update_query);
         ?>
         <span class="welcome-text">Selamat Kembali!</span>
       </div>
-      <?php
-        // Replace with your actual notification count variable
-        $notif_count = $pending_count;
-        ?>
-
-        <button onclick="location.href='student_formhistory.php'" style="position: relative; background: none; border: none; cursor: pointer;">
-          <span class="material-symbols-outlined icon" style="font-size: 28px; color: white;">
-            notifications
-          </span>
-
-          <?php if ($notif_count > 0): ?>
-            <span style="
-              position: absolute;
-              top: -5px;
-              right: -5px;
-              background: red;
-              color: white;
-              border-radius: 50%;
-              padding: 4px 7px;
-              font-size: 12px;
-            ">
-              <?php echo $notif_count; ?>
-            </span>
-          <?php endif; ?>
-        </button>
+      <?php include '../includes/notifications_panel.php'; ?>
     </div>
   </header>
 

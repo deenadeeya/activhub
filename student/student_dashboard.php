@@ -1,6 +1,7 @@
 <?php
 require_once '../config/connect.php';
 require_once '../includes/session_check.php';
+require_once '../includes/NotificationService.php';
 include '../includes/header.php';
 
 if (!isset($_SESSION['user_ic']) || $_SESSION['user_role'] !== 'student') {
@@ -25,7 +26,10 @@ if ($result && mysqli_num_rows($result) === 1) {
   exit();
 }
 
-// Pending Notification
+// Initialize Notification Service
+$notificationService = new NotificationService($conn);
+
+// Legacy notification count from cocu_activities (keeping for backward compatibility)
 $query = "
   SELECT COUNT(*) AS pending_count 
   FROM cocu_activities 
@@ -35,11 +39,17 @@ $query = "
 ";
 
 $result = mysqli_query($conn, $query);
-$pending_count = 0;
+$legacy_pending_count = 0;
 
 if ($result && $row_pending = mysqli_fetch_assoc($result)) {
-  $pending_count = $row_pending['pending_count'];
+  $legacy_pending_count = $row_pending['pending_count'];
 }
+
+// Get modern notification count
+$modern_notification_count = $notificationService->getUnreadCount($user_ic);
+
+// Total notification count (legacy + modern)
+$total_notification_count = $legacy_pending_count + $modern_notification_count;
 
 // Get leaderboard (top 10 students with most activities)
 $leaderboard_query = "
@@ -66,7 +76,7 @@ if (isset($_GET['register']) && isset($_GET['event_id'])) {
     mysqli_query($conn, $register_query);
     $registration_success = true;
 
-    // Fetch event details
+    // Fetch event details for activity creation
     $event_info_query = "SELECT * FROM events WHERE event_id = $event_id";
     $event_info_result = mysqli_query($conn, $event_info_query);
     if ($event_info_result && $event = mysqli_fetch_assoc($event_info_result)) {
@@ -97,6 +107,9 @@ if (isset($_GET['register']) && isset($_GET['event_id'])) {
             VALUES 
             ('$user_ic', '$activity_name', '$activity_date', '$activity_location', '$activity_category', '$award', '$ach', '$approval_status')";
         mysqli_query($conn, $insert_activity);
+        
+        // 🔥 NEW: Create registration confirmation notification
+        $notificationService->notifyEventRegistration($user_ic, $event['event_name']);
     }
   }
 }
@@ -153,31 +166,8 @@ if (isset($_GET['register']) && isset($_GET['event_id'])) {
         ?>
         <span class="welcome-text">Selamat Kembali!</span>
       </div>
-        <?php
-        // Replace with your actual notification count variable
-        $notif_count = $pending_count;
-        ?>
-
-        <button onclick="location.href='student_formhistory.php'" style="position: relative; background: none; border: none; cursor: pointer;">
-          <span class="material-symbols-outlined icon" style="font-size: 28px; color: white;">
-            notifications
-          </span>
-
-          <?php if ($notif_count > 0): ?>
-            <span style="
-              position: absolute;
-              top: -5px;
-              right: -5px;
-              background: red;
-              color: white;
-              border-radius: 50%;
-              padding: 4px 7px;
-              font-size: 12px;
-            ">
-              <?php echo $notif_count; ?>
-            </span>
-          <?php endif; ?>
-        </button>
+      
+      <?php include '../includes/notifications_panel.php'; ?>
     </div>
   </header>
 
@@ -196,7 +186,7 @@ if (isset($_GET['register']) && isset($_GET['event_id'])) {
         <p><div class="salam">السلام عليكم</div><?php echo strtoupper($row['student_fname']); ?></p>
         <button class="btn-yellow" onclick="location.href='student_formhistory.php'" style="position: relative;">
           SEJARAH BORANG
-          <?php if ($pending_count > 0): ?>
+          <?php if ($total_notification_count > 0): ?>
             <span style="
               position: absolute;
               top: -5px;
@@ -207,7 +197,7 @@ if (isset($_GET['register']) && isset($_GET['event_id'])) {
               padding: 4px 7px;
               font-size: 12px;
             ">
-              <?php echo $pending_count; ?>
+              <?php echo $total_notification_count; ?>
             </span>
           <?php endif; ?>
         </button>

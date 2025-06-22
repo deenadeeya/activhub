@@ -1,5 +1,6 @@
 <?php
 require_once '../includes/session_check.php';
+require_once '../includes/NotificationService.php';
 include '../config/connect.php';
 include '../includes/header.php';
 
@@ -56,10 +57,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         // Insert event
         $stmt = $conn->prepare("INSERT INTO events (event_name, event_start_date, event_end_date, event_venue, event_description, event_type, is_mandatory, auto_register_members, visibility, max_participants, registration_deadline, contact_number, group_id, eligible_years, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssssiisisisss", $event_name, $event_start_date, $event_end_date, $event_venue, $event_description, $event_type, $is_mandatory, $auto_register_members, $visibility, $max_participants, $registration_deadline, $contact_number, $group_id, $eligible_years, $created_by);
+        $stmt->bind_param("ssssssiisisssss", $event_name, $event_start_date, $event_end_date, $event_venue, $event_description, $event_type, $is_mandatory, $auto_register_members, $visibility, $max_participants, $registration_deadline, $contact_number, $group_id, $eligible_years, $created_by);
 
         if ($stmt->execute()) {
             $event_id = $conn->insert_id;
+            
+            // 🔥 NEW: Initialize notification service and send notifications
+            $notificationService = new NotificationService($conn);
+            
+            // Send notifications based on event type and visibility
+            if ($is_mandatory && $group_id) {
+                // Mandatory club event - send urgent notifications
+                $notified_count = $notificationService->notifyMandatoryClubEvent($event_id, $event_name, $group_id, $eligible_years);
+            } else {
+                // Regular event notifications
+                $notified_count = $notificationService->notifyNewEvent($event_id, $event_name, $visibility, $group_id, $eligible_years);
+            }
             
             // Auto-register club members if enabled
             if ($auto_register_members && $group_id) {
@@ -108,6 +121,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $success = "Acara berjaya ditambah!";
             if (isset($auto_registered_count) && $auto_registered_count > 0) {
                 $success .= " $auto_registered_count ahli kelab telah didaftarkan secara automatik.";
+            }
+            if (isset($notified_count) && $notified_count > 0) {
+                $success .= " $notified_count pelajar telah dimaklumkan tentang acara ini.";
             }
         } else {
             $error = "Ralat semasa menambah acara: " . $stmt->error;

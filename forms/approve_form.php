@@ -1,5 +1,6 @@
 <?php
 require_once '../includes/session_check.php';
+require_once '../includes/NotificationService.php';
 include '../config/connect.php';
 include '../includes/header.php';
 
@@ -28,6 +29,11 @@ if (!$classResult || mysqli_num_rows($classResult) == 0) {
         $activity_id = $_POST['activity_id'];
         $currentDateTime = date('Y-m-d H:i:s');
 
+        // Get activity details before updating
+        $activity_query = "SELECT student_ic, activity_name FROM cocu_activities WHERE id = '$activity_id'";
+        $activity_result = mysqli_query($conn, $activity_query);
+        $activity_data = mysqli_fetch_assoc($activity_result);
+
         // Update approval_status, approved_by, approved_at, reset notification_read
         $updateQuery = "
             UPDATE cocu_activities 
@@ -39,6 +45,16 @@ if (!$classResult || mysqli_num_rows($classResult) == 0) {
             WHERE id = '$activity_id'
         ";
         mysqli_query($conn, $updateQuery);
+
+        // 🔥 NEW: Create modern notification for approval
+        if ($activity_data) {
+            $notificationService = new NotificationService($conn);
+            $notificationService->notifyActivityStatusChange(
+                $activity_data['student_ic'], 
+                $activity_data['activity_name'], 
+                'approved'
+            );
+        }
     }
 
     // Handle cancellation action
@@ -46,6 +62,11 @@ if (!$classResult || mysqli_num_rows($classResult) == 0) {
         $activity_id = $_POST['activity_id'];
         $rejection_remarks = mysqli_real_escape_string($conn, $_POST['rejection_remarks']);
         $currentDateTime = date('Y-m-d H:i:s');
+
+        // Get activity details before updating
+        $activity_query = "SELECT student_ic, activity_name FROM cocu_activities WHERE id = '$activity_id'";
+        $activity_result = mysqli_query($conn, $activity_query);
+        $activity_data = mysqli_fetch_assoc($activity_result);
 
         $updateQuery = "
             UPDATE cocu_activities 
@@ -58,6 +79,25 @@ if (!$classResult || mysqli_num_rows($classResult) == 0) {
             WHERE id = '$activity_id'
         ";
         mysqli_query($conn, $updateQuery);
+
+        // 🔥 NEW: Create modern notification for rejection with custom message
+        if ($activity_data) {
+            $notificationService = new NotificationService($conn);
+            
+            // Create custom rejection notification with remarks
+            $title = "Aktiviti Ditolak";
+            $message = "Aktiviti '{$activity_data['activity_name']}' telah ditolak. Sebab: {$rejection_remarks}";
+            
+            $notificationService->createNotification(
+                $activity_data['student_ic'],
+                'student',
+                'activity',
+                $title,
+                $message,
+                $activity_id,
+                'cocu_activities'
+            );
+        }
     }
 
     // Get unapproved applications for teacher's class

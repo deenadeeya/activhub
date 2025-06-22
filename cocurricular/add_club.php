@@ -54,7 +54,7 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'teacher') {
 
 // Fetch all existing students to populate dropdowns
 $students = [];
-$student_query = $conn->query("SELECT student_ic, student_fname FROM student ORDER BY student_ic");
+$student_query = $conn->query("SELECT student_ic, student_fname FROM student ORDER BY student_fname");
 if ($student_query) {
     while ($row = $student_query->fetch_assoc()) {
         $students[] = $row;
@@ -232,9 +232,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     echo "<select name='$name' style='width:100%; padding:10px; margin:5px 0; border-radius:6px; border:1px solid #ccc;'>";
                     echo "<option value=''>-- Pilih Pelajar (Kosongkan jika tiada) --</option>";
                     foreach ($students as $student) {
-                        $fullName = htmlspecialchars($student['student_fname'] . ' ' . $student['student_lname']);
+                        $fullName = htmlspecialchars($student['student_fname']);
                         $ic = htmlspecialchars($student['student_ic']);
-                        echo "<option value='$ic'>$fullName</option>";
+                        echo "<option value='$ic'>$fullName ($ic)</option>";
                     }
                     echo "</select>";
                 }
