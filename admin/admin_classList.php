@@ -1,7 +1,7 @@
 <?php
 require_once '../includes/session_check.php';
-require_once '../connect.php';
-include '../header.php';
+require_once '../config/connect.php';
+include '../includes/header.php';
 // Auto logout after 30 minutes of inactivity
 if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 1800)) {
     session_unset();
@@ -26,7 +26,7 @@ $result = mysqli_query($conn, $sql);
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Senarai Admin - SRIAAWP ActivHub</title>
-    <link rel="stylesheet" href="../css/teacherList.css" />
+    <link rel="stylesheet" href="../assets/css/teacherList.css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
@@ -36,10 +36,10 @@ $result = mysqli_query($conn, $sql);
 
     <header>
         <div class="logo-section">
-            <img src="../img/logo.png" alt="Logo" />
+            <img src="../assets/img/logo.png" alt="Logo" />
             <div class="logo-text">
                 <span>SRIAAWP ActivHub</span>
-                <?php include '../navlinks.php'; ?>
+                <?php include '../includes/navlinks.php'; ?>
             </div>
         </div>
         <div class="icon-section">

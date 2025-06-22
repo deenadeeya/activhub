@@ -1,7 +1,7 @@
 <?php
 require_once '../includes/session_check.php';
-require_once '../connect.php';
-include '../header.php';
+require_once '../config/connect.php';
+include '../includes/header.php';
 
 if (!isset($_SESSION['user_role']) || !isset($_SESSION['user_ic'])) {
     header("Location: ../auth/login.php");
@@ -66,20 +66,20 @@ $classes = $class_query->fetch_all(MYSQLI_ASSOC);
 <head>
     <meta charset="UTF-8" />
     <title>Tambah Admin - SRIAAWP ActivHub</title>
-    <link rel="stylesheet" href="../css/profile.css">
+    <link rel="stylesheet" href="../assets/css/profile.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
 </head>
 
 <body>
 
     <header>
         <div class="logo-section">
-            <img src="../img/logo.png" alt="Logo" />
+            <img src="../assets/img/logo.png" alt="Logo" />
             <div class="logo-text">
                 <span>SRIAAWP ActivHub</span>
-                <?php include '../navlinks.php'; ?>
+                <?php include '../includes/navlinks.php'; ?>
             </div>
         </div>
 
@@ -97,7 +97,7 @@ $classes = $class_query->fetch_all(MYSQLI_ASSOC);
         <form method="POST" class="profile-container">
             <section class="left-card">
                 <div class="profile-header">
-                    <img src="../img/profile.jpg" alt="Student Image" class="profile-pic">
+                    <img src="../assets/img/profile.jpg" alt="Student Image" class="profile-pic">
                     <h2>Admin Baru</h2>
                 </div>
 
