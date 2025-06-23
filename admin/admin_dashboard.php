@@ -21,6 +21,13 @@ $admin_username = $_SESSION['user_ic'];
 include '../config/connect.php';
 include '../includes/header.php';
 
+// Auto-generate admin notifications on dashboard load
+require_once '../includes/NotificationService.php';
+$notificationService = new NotificationService($conn);
+$notificationService->generateAdminNotifications($admin_username);
+// Temporarily disable system health check
+// $notificationService->checkSystemHealth($admin_username);
+
 // Get current date
 $today = date("Y-m-d");
 
@@ -77,7 +84,7 @@ $result = $stmt->get_result();
         <span class="admin-text"><?php echo strtoupper(htmlspecialchars($admin_username)); ?></span><br>
         <span class="welcome-text">Selamat Kembali!</span>
       </div>
-      <span class="material-symbols-outlined icon">notifications</span>
+      <?php include '../includes/notifications_panel.php'; ?>
     </div>
   </header>
 

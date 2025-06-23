@@ -8,10 +8,20 @@ if (!isset($conn) || !isset($_SESSION['user_ic'])) {
 
 $notificationService = new NotificationService($conn);
 $user_ic = $_SESSION['user_ic'];
+$user_role = $_SESSION['user_role'] ?? 'student';
 
 // Get recent notifications and unread count
 $recent_notifications = $notificationService->getUserNotifications($user_ic, 5);
-$unread_count = $notificationService->getUnreadCount($user_ic);
+
+// Calculate notification count based on user role
+if ($user_role === 'admin') {
+    // Generate fresh admin notifications
+    $notificationService->generateAdminNotifications($user_ic);
+    // Get admin-specific count including system-wide pending items
+    $unread_count = $notificationService->getAdminNotificationCount($user_ic);
+} else {
+    $unread_count = $notificationService->getUnreadCount($user_ic);
+}
 
 // Clean up expired notifications
 $notificationService->cleanupExpiredNotifications();
@@ -169,6 +179,9 @@ $notificationService->cleanupExpiredNotifications();
             } else {
                 $notifications_path = '../teacher/notifications.php';
             }
+        } elseif ($_SESSION['user_role'] === 'admin') {
+            // Admin notifications go to audit history for now
+            $notifications_path = '../forms/audit_history.php';
         }
     }
     ?>
@@ -241,6 +254,25 @@ $notificationService->cleanupExpiredNotifications();
                             } elseif ($notification['type'] === 'event' || $notification['type'] === 'registration' || $notification['type'] === 'deadline') {
                                 $redirect_url = '../events/manage_events.php';
                             }
+                        } elseif ($_SESSION['user_role'] === 'admin') {
+                            // Admin notification routing
+                            if ($notification['type'] === 'admin_pending' || $notification['type'] === 'activity_submission' || $notification['type'] === 'activity_resubmission') {
+                                // Pending approvals go to audit history for admin oversight
+                                $redirect_url = '../forms/audit_history.php';
+                            } elseif ($notification['type'] === 'admin_deadline' || $notification['type'] === 'event' || $notification['type'] === 'deadline') {
+                                // Event management notifications
+                                if ($notification['related_id']) {
+                                    $redirect_url = '../events/manage_events.php?event_id=' . $notification['related_id'];
+                                } else {
+                                    $redirect_url = '../events/manage_events.php';
+                                }
+                            } elseif ($notification['type'] === 'admin_teacher_alert') {
+                                // Teacher monitoring - go to teacher list
+                                $redirect_url = '../teacher/teacherList.php';
+                            } elseif ($notification['type'] === 'system_alert') {
+                                // System alerts - stay on admin dashboard
+                                $redirect_url = ($current_dir === 'admin') ? 'admin_dashboard.php' : '../admin/admin_dashboard.php';
+                            }
                         }
                     }
                     ?>                    <div class="notification-item <?= $notification['is_read'] ? '' : 'unread' ?>" 
@@ -264,16 +296,15 @@ $notificationService->cleanupExpiredNotifications();
                         $notifications_path = 'notifications.php';
                     } else {
                         $notifications_path = '../student/notifications.php';
-                    }
-                } elseif ($_SESSION['user_role'] === 'teacher') {
+                    }                } elseif ($_SESSION['user_role'] === 'teacher') {
                     if ($current_dir === 'teacher') {
                         $notifications_path = 'notifications.php';
                     } else {
                         $notifications_path = '../teacher/notifications.php';
                     }
-                } else {
-                    // For admin or other roles, hide the link
-                    $notifications_path = '';
+                } elseif ($_SESSION['user_role'] === 'admin') {
+                    // Admin notifications go to audit history for oversight
+                    $notifications_path = '../forms/audit_history.php';
                 }
             }
             ?>

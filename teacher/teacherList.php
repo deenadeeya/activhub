@@ -3,6 +3,14 @@ require_once '../includes/session_check.php';
 require_once '../config/connect.php';
 include '../includes/header.php';
 
+// Handle admin notification marking for teacher monitoring
+if (isset($_GET['notification_id'])) {
+    require_once '../includes/NotificationService.php';
+    $notification_id = intval($_GET['notification_id']);
+    $notificationService = new NotificationService($conn);
+    $notificationService->markAsRead($notification_id, $_SESSION['user_ic']);
+}
+
 // Get all teachers and their class assignments (if any)
 $sql = "SELECT t.*, c.class_id, c.class_name 
         FROM teacher t 

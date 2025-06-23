@@ -3,6 +3,14 @@ require_once '../includes/session_check.php';
 require_once '../config/connect.php';
 include '../includes/header.php';
 
+// Handle notification marking as read
+if (isset($_GET['notification_id'])) {
+    require_once '../includes/NotificationService.php';
+    $notification_id = intval($_GET['notification_id']);
+    $notificationService = new NotificationService($conn);
+    $notificationService->markAsRead($notification_id, $_SESSION['user_ic']);
+}
+
 // Build filter query
 $where_conditions = [];
 $params = [];
@@ -323,7 +331,7 @@ $years_result = mysqli_query($conn, $years_query);
                 ?>
                 <span class="welcome-text">Selamat Kembali!</span>
             </div>
-            <span class="material-symbols-outlined icon">notifications</span>
+            <?php include '../includes/notifications_panel.php'; ?>
         </div>
     </header>
 

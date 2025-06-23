@@ -3,6 +3,14 @@ require_once '../includes/session_check.php';
 require_once '../config/connect.php';
 include '../includes/header.php';
 
+// Handle notification marking as read
+if (isset($_GET['notification_id'])) {
+    require_once '../includes/NotificationService.php';
+    $notification_id = intval($_GET['notification_id']);
+    $notificationService = new NotificationService($conn);
+    $notificationService->markAsRead($notification_id, $_SESSION['user_ic']);
+}
+
 // Auto logout after 30 minutes of inactivity
 if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 1800)) {
     session_unset();
@@ -46,9 +54,16 @@ $result = mysqli_query($conn, $sql);
         </div>
         <div class="icon-section">
             <div class="user-section">
-                <span class="welcome-text">Selamat Kembali!<br> <?= htmlspecialchars($_SESSION['user_ic']) ?></span>
+                <?php
+                if (isset($_SESSION['user_role'])) {
+                    if ($_SESSION['user_role'] === 'admin') {
+                        echo '<span class="admin-text">' . strtoupper($_SESSION['admin_name'] ?? 'ADMIN') . '</span><br>';
+                    }
+                }
+                ?>
+                <span class="welcome-text">Selamat Kembali!</span>
             </div>
-            <span class="material-symbols-outlined icon">notifications</span>
+            <?php include '../includes/notifications_panel.php'; ?>
         </div>
     </header>
 

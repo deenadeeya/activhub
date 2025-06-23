@@ -3,6 +3,14 @@ require_once '../includes/session_check.php';
 require_once '../config/connect.php';
 include '../includes/header.php';
 
+// Handle notification marking as read
+if (isset($_GET['notification_id'])) {
+    require_once '../includes/NotificationService.php';
+    $notification_id = intval($_GET['notification_id']);
+    $notificationService = new NotificationService($conn);
+    $notificationService->markAsRead($notification_id, $_SESSION['user_ic']);
+}
+
 if (!isset($_SESSION['user_role']) || !isset($_SESSION['user_ic'])) {
     header("Location: ../auth/login.php");
     exit();
@@ -107,10 +115,16 @@ $classes = $class_query->fetch_all(MYSQLI_ASSOC);
 
         <div class="icon-section">
             <div class="admin-section">
-                <span class="admin-text"><?= strtoupper($user_role) ?></span><br>
+                <?php
+                if (isset($_SESSION['user_role'])) {
+                    if ($_SESSION['user_role'] === 'admin') {
+                        echo '<span class="admin-text">' . strtoupper($_SESSION['admin_name'] ?? 'ADMIN') . '</span><br>';
+                    }
+                }
+                ?>
                 <span class="welcome-text">Selamat Datang, <?= htmlspecialchars($username) ?>!</span>
             </div>
-            <span class="material-symbols-outlined icon">notifications</span>
+            <?php include '../includes/notifications_panel.php'; ?>
         </div>
     </header>
 
