@@ -61,113 +61,106 @@ if ($user_role === 'teacher') {
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pengurusan Acara - SRIAAWP ActivHub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />    <title>Pengurusan Acara - SRIAAWP ActivHub</title>
+    <link href="http://fonts.googleapis.com/css?family=Lato:300,400,700" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="../assets/css/dash.css" />
     <link rel="stylesheet" href="../assets/css/header&bg.css" />
-    <link rel="stylesheet" href="../assets/css/history_table.css" />
-    <link rel="stylesheet" href="../assets/css/button.css" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
-    <style>
-        .events-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .event-card {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            padding: 20px;
-            border-left: 4px solid #064789;
-        }
-
-        .event-header {
+    <style>        .container {
+            background-color: rgba(224, 239, 220, 0.8);
+            position: relative;
+            min-height: 100vh;
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-        }
-
-        .event-title {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: #064789;
-            margin: 0 0 5px 0;
-        }
-
-        .event-meta {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-        }
-
-        .meta-item {
-            display: flex;
+            justify-content: center;
             align-items: center;
-            gap: 5px;
-            color: #666;
-            font-size: 0.9rem;
+            flex-direction: column;
+            padding: 20px 0;
         }
 
-        .event-badges {
+        .welcome-section {
             display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 20px;
         }
 
-        .badge {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 500;
+        .welcome-section img {
+            width: 80px;
+            height: 80px;
+            margin-right: 20px;
         }
 
-        .badge-mandatory { background: #ffebee; color: #c62828; }
-        .badge-auto { background: #e8f5e8; color: #2e7d32; }
-        .badge-club { background: #fff3e0; color: #f57c00; }
-        .badge-public { background: #e3f2fd; color: #1976d2; }
-        .badge-private { background: #fce4ec; color: #ad1457; }
-
-        .event-description {
-            color: #555;
-            margin-bottom: 15px;
-            line-height: 1.5;
+        .welcome-texts h1 {
+            font-size: 28px;
+            margin: 0;
+            text-align: center;
+            color: black;
         }
 
-        .event-stats {
+        .welcome-texts h2 {
+            font-size: 16px;
+            margin: 5px 0 0 0;
+            color: black;
+            font-weight: normal;
+        }
+
+        .dashboard-content {
             display: flex;
             gap: 20px;
-            margin-bottom: 15px;
-        }
-
-        .stat-item {
-            background: #f5f5f5;
-            padding: 8px 12px;
-            border-radius: 6px;
-            text-align: center;
-            min-width: 80px;
-        }
-
-        .stat-number {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #064789;
-        }
-
-        .stat-label {
-            font-size: 0.8rem;
-            color: #666;
-        }
-
-        .event-actions {
-            display: flex;
-            gap: 10px;
             flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            position: relative;
+            z-index: 10;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .left-panel {
+            width: 300px;
+            padding: 20px;
+            background-color: white;
+            opacity: 1;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .left-panel p {
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .salam {
+            font-size: 25px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .left-panel button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }        .right-panel {
+            flex: 1;
+            max-width: 1000px;
+            background-color: white;
+            opacity: 1;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: left;
         }
 
         .filter-section {
@@ -181,23 +174,116 @@ if ($user_role === 'teacher') {
             align-items: center;
         }
 
-        .filter-section select, .filter-section input {
+        .filter-section select, 
+        .filter-section input {
             padding: 8px 12px;
             border: 1px solid #ddd;
             border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .event-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+            background: white;
+        }
+
+        .event-item strong {
+            color: #064789;
+            font-size: 16px;
+        }
+
+        .event-badges {
+            display: flex;
+            gap: 8px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .badge-meeting { background: #e3f2fd; color: #1976d2; }
+        .badge-competition { background: #fff3e0; color: #f57c00; }
+        .badge-training { background: #e8f5e8; color: #2e7d32; }
+        .badge-social { background: #fce4ec; color: #ad1457; }
+        .badge-other { background: #f5f5f5; color: #666; }
+        .badge-mandatory { background: #ffebee; color: #c62828; }
+        .badge-auto { background: #e8f5e8; color: #2e7d32; }
+        .badge-public { background: #e3f2fd; color: #1976d2; }
+        .badge-club_only { background: #fff3e0; color: #f57c00; }
+        .badge-private { background: #fce4ec; color: #ad1457; }
+
+        .event-stats {
+            display: flex;
+            gap: 15px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: #f5f5f5;
+            padding: 8px 12px;
+            border-radius: 6px;
+            text-align: center;
+            min-width: 70px;
+            font-size: 12px;
+        }
+
+        .stat-number {
+            font-size: 16px;
+            font-weight: bold;
+            color: #064789;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #666;
+        }
+
+        .event-actions {
+            margin-top: 10px;
+        }
+
+        .event-actions button {
+            margin-top: 10px;
+            margin-right: 5px;
+            padding: 6px 10px;
+            font-size: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
         }
 
         @media (max-width: 768px) {
-            .event-header {
+            .dashboard-content {
                 flex-direction: column;
-                gap: 10px;
+                align-items: center;
             }
-            
-            .event-meta {
+
+            .left-panel,
+            .right-panel {
+                width: 90%;
+            }
+
+            .welcome-section {
                 flex-direction: column;
-                gap: 8px;
             }
-            
+
+            .welcome-section img {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+
             .filter-section {
                 flex-direction: column;
                 align-items: stretch;
@@ -242,157 +328,142 @@ if ($user_role === 'teacher') {
         </div>
     </header>
 
-    <div class="events-container">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h1>PENGURUSAN ACARA KOKURIKULUM</h1>
-            <div>
-                <a href="add_events.php" class="btn-yellow">Tambah Acara Baru</a>
-                <?php if ($user_role === 'admin'): ?>
-                    <a href="../admin/admin_dashboard.php" class="btn-red" style="margin-left: 10px;">Kembali</a>
-                <?php else: ?>
-                    <a href="../teacher/teacher_dashboard.php" class="btn-red" style="margin-left: 10px;">Kembali</a>
-                <?php endif; ?>
-            </div>
-        </div>
+    <div class="container">
+        <div class="welcome-section">
+            <img src="../assets/img/logo.png" alt="Logo">
+            <div class="welcome-texts">
+                <h1>PENGURUSAN ACARA KOKURIKULUM</h1>
+                <h2>"Sistem Pengurusan dan Penjejakan Acara Kokurikulum"</h2>
+            </div>        </div>
 
-        <!-- Filters -->
-        <div class="filter-section">
-            <label><strong>Tapis:</strong></label>
-            <select id="filter_type">
-                <option value="">Semua Jenis</option>
-                <option value="meeting">Mesyuarat</option>
-                <option value="competition">Pertandingan</option>
-                <option value="training">Latihan</option>
-                <option value="social">Sosial</option>
-                <option value="other">Lain-lain</option>
-            </select>
-            
-            <select id="filter_visibility">
-                <option value="">Semua Tahap Keterlihatan</option>
-                <option value="public">Awam</option>
-                <option value="club_only">Ahli Kelab Sahaja</option>
-                <option value="private">Peribadi</option>
-            </select>
-            
-            <input type="text" id="search_event" placeholder="Cari nama acara...">
-        </div>
+        <div class="right-panel" style="margin: 0 auto; max-width: 1200px;">
+            <h3>SENARAI ACARA KOKURIKULUM</h3>
+                
+                <!-- Filters -->
+                <div class="filter-section">
+                    <label><strong>Tapis:</strong></label>
+                    <select id="filter_type">
+                        <option value="">Semua Jenis</option>
+                        <option value="meeting">Mesyuarat</option>
+                        <option value="competition">Pertandingan</option>
+                        <option value="training">Latihan</option>
+                        <option value="social">Sosial</option>
+                        <option value="other">Lain-lain</option>
+                    </select>
+                    
+                    <select id="filter_visibility">
+                        <option value="">Semua Tahap Keterlihatan</option>
+                        <option value="public">Awam</option>
+                        <option value="club_only">Ahli Kelab Sahaja</option>
+                        <option value="private">Peribadi</option>
+                    </select>
+                    
+                    <input type="text" id="search_event" placeholder="Cari nama acara...">
+                </div>
 
-        <!-- Events List -->
-        <div id="events-list">
-            <?php if ($events_result && mysqli_num_rows($events_result) > 0): ?>
-                <?php while ($event = mysqli_fetch_assoc($events_result)): ?>
-                    <div class="event-card" 
-                         data-type="<?= htmlspecialchars($event['event_type']) ?>" 
-                         data-visibility="<?= htmlspecialchars($event['visibility']) ?>"
-                         data-name="<?= strtolower(htmlspecialchars($event['event_name'])) ?>">
-                        
-                        <div class="event-header">
-                            <div>
-                                <h3 class="event-title"><?= htmlspecialchars($event['event_name']) ?></h3>
-                                <div class="event-meta">
-                                    <div class="meta-item">
-                                        <span class="material-symbols-outlined" style="font-size: 16px;">calendar_today</span>
-                                        <?= date('d/m/Y', strtotime($event['event_start_date'])) ?>
-                                        <?php if ($event['event_start_date'] !== $event['event_end_date']): ?>
-                                            - <?= date('d/m/Y', strtotime($event['event_end_date'])) ?>
-                                        <?php endif; ?>
+                <!-- Events List -->
+                <div id="events-list">
+                    <?php if ($events_result && mysqli_num_rows($events_result) > 0): ?>
+                        <?php while ($event = mysqli_fetch_assoc($events_result)): ?>
+                            <div class="event-item" 
+                                 data-type="<?= htmlspecialchars($event['event_type']) ?>" 
+                                 data-visibility="<?= htmlspecialchars($event['visibility']) ?>"
+                                 data-name="<?= strtolower(htmlspecialchars($event['event_name'])) ?>">
+                                
+                                <strong><?= htmlspecialchars($event['event_name']) ?></strong><br>
+                                
+                                <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">calendar_today</span>
+                                <?= date('d/m/Y', strtotime($event['event_start_date'])) ?>
+                                <?php if ($event['event_start_date'] !== $event['event_end_date']): ?>
+                                    - <?= date('d/m/Y', strtotime($event['event_end_date'])) ?>
+                                <?php endif; ?><br>
+                                
+                                <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">location_on</span>
+                                Tempat: <?= htmlspecialchars($event['event_venue']) ?><br>
+                                
+                                <?php if ($event['group_name']): ?>
+                                    <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">group</span>
+                                    Penganjur: <?= htmlspecialchars($event['group_name']) ?><br>
+                                <?php endif; ?>
+
+                                <?php if ($event['event_description']): ?>
+                                    Keterangan: <?= nl2br(htmlspecialchars($event['event_description'])) ?><br>
+                                <?php endif; ?>
+
+                                <div class="event-badges">
+                                    <span class="badge badge-<?= $event['event_type'] ?>"><?= ucfirst($event['event_type']) ?></span>
+                                    
+                                    <?php if ($event['is_mandatory']): ?>
+                                        <span class="badge badge-mandatory">Wajib</span>
+                                    <?php endif; ?>
+                                    
+                                    <?php if ($event['auto_register_members']): ?>
+                                        <span class="badge badge-auto">Auto-Daftar</span>
+                                    <?php endif; ?>
+                                    
+                                    <?php if ($event['visibility'] === 'public'): ?>
+                                        <span class="badge badge-public">Awam</span>
+                                    <?php elseif ($event['visibility'] === 'club_only'): ?>
+                                        <span class="badge badge-club_only">Ahli Kelab</span>
+                                    <?php else: ?>
+                                        <span class="badge badge-private">Peribadi</span>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="event-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-number"><?= $event['total_registrations'] ?></span>
+                                        <span class="stat-label">Pendaftar</span>
                                     </div>
-                                    <div class="meta-item">
-                                        <span class="material-symbols-outlined" style="font-size: 16px;">location_on</span>
-                                        <?= htmlspecialchars($event['event_venue']) ?>
+                                    <div class="stat-item">
+                                        <span class="stat-number"><?= $event['total_attended'] ?></span>
+                                        <span class="stat-label">Hadir</span>
                                     </div>
-                                    <?php if ($event['group_name']): ?>
-                                        <div class="meta-item">
-                                            <span class="material-symbols-outlined" style="font-size: 16px;">group</span>
-                                            <?= htmlspecialchars($event['group_name']) ?>
+                                    <?php if ($event['max_participants']): ?>
+                                        <div class="stat-item">
+                                            <span class="stat-number"><?= $event['max_participants'] ?></span>
+                                            <span class="stat-label">Had Peserta</span>
                                         </div>
                                     <?php endif; ?>
                                 </div>
-                            </div>
-                        </div>
 
-                        <div class="event-badges">
-                            <span class="badge badge-<?= $event['event_type'] ?>"><?= ucfirst($event['event_type']) ?></span>
-                            
-                            <?php if ($event['is_mandatory']): ?>
-                                <span class="badge badge-mandatory">Wajib</span>
-                            <?php endif; ?>
-                            
-                            <?php if ($event['auto_register_members']): ?>
-                                <span class="badge badge-auto">Auto-Daftar</span>
-                            <?php endif; ?>
-                            
-                            <?php if ($event['visibility'] === 'public'): ?>
-                                <span class="badge badge-public">Awam</span>
-                            <?php elseif ($event['visibility'] === 'club_only'): ?>
-                                <span class="badge badge-club">Ahli Kelab</span>
-                            <?php else: ?>
-                                <span class="badge badge-private">Peribadi</span>
-                            <?php endif; ?>
-                        </div>
-
-                        <?php if ($event['event_description']): ?>
-                            <div class="event-description">
-                                <?= nl2br(htmlspecialchars($event['event_description'])) ?>
-                            </div>
-                        <?php endif; ?>
-
-                        <div class="event-stats">
-                            <div class="stat-item">
-                                <div class="stat-number"><?= $event['total_registrations'] ?></div>
-                                <div class="stat-label">Pendaftar</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-number"><?= $event['total_attended'] ?></div>
-                                <div class="stat-label">Hadir</div>
-                            </div>
-                            <?php if ($event['max_participants']): ?>
-                                <div class="stat-item">
-                                    <div class="stat-number"><?= $event['max_participants'] ?></div>
-                                    <div class="stat-label">Had Peserta</div>
+                                <div class="event-actions">
+                                    <button class="btn-status-blue" onclick="location.href='event_participants.php?event_id=<?= $event['event_id'] ?>'">Senarai Peserta</button>
+                                    <button class="btn-status-blue" onclick="location.href='manage_attendance.php?id=<?= $event['event_id'] ?>'">Urus Kehadiran</button>
+                                    <?php if ($user_role === 'admin' || $event['created_by'] === $user_ic): ?>
+                                        <button class="btn-yellow" onclick="location.href='edit_events.php?id=<?= $event['event_id'] ?>'">Kemaskini</button>
+                                    <?php endif; ?>
                                 </div>
-                            <?php endif; ?>
+                            </div>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <div class="event-item" style="text-align: center; color: #666;">
+                            <strong>Tiada Acara Dijumpai</strong><br>
+                            Belum ada acara yang dicipta. <a href="add_events.php" style="color: #064789;">Klik di sini untuk menambah acara baru</a>.
                         </div>
-
-                        <div class="event-actions">
-                            <a href="view_event.php?id=<?= $event['event_id'] ?>" class="btn-darkblue">Lihat Butiran</a>
-                            <a href="manage_attendance.php?id=<?= $event['event_id'] ?>" class="btn-yellow">Kehadiran</a>
-                            <?php if ($user_role === 'admin' || $event['created_by'] === $user_ic): ?>
-                                <a href="edit_events.php?id=<?= $event['event_id'] ?>" class="btn-green">Edit</a>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                <?php endwhile; ?>
-            <?php else: ?>
-                <div class="event-card" style="text-align: center; color: #666;">
-                    <h3>Tiada Acara Dijumpai</h3>
-                    <p>Belum ada acara yang dicipta. <a href="add_events.php">Klik di sini untuk menambah acara baru</a>.</p>
-                </div>
-            <?php endif; ?>
-        </div>
-    </div>
-
-    <script>
+                    <?php endif; ?>                </div>
+            </div>
+    </div><script>
         // Filter functionality
         function applyFilters() {
             const typeFilter = document.getElementById('filter_type').value;
             const visibilityFilter = document.getElementById('filter_visibility').value;
             const searchTerm = document.getElementById('search_event').value.toLowerCase();
             
-            const eventCards = document.querySelectorAll('.event-card[data-type]');
+            const eventItems = document.querySelectorAll('.event-item[data-type]');
             
-            eventCards.forEach(card => {
-                const cardType = card.getAttribute('data-type');
-                const cardVisibility = card.getAttribute('data-visibility');
-                const cardName = card.getAttribute('data-name');
+            eventItems.forEach(item => {
+                const itemType = item.getAttribute('data-type');
+                const itemVisibility = item.getAttribute('data-visibility');
+                const itemName = item.getAttribute('data-name');
                 
                 let show = true;
                 
-                if (typeFilter && cardType !== typeFilter) show = false;
-                if (visibilityFilter && cardVisibility !== visibilityFilter) show = false;
-                if (searchTerm && !cardName.includes(searchTerm)) show = false;
+                if (typeFilter && itemType !== typeFilter) show = false;
+                if (visibilityFilter && itemVisibility !== visibilityFilter) show = false;
+                if (searchTerm && !itemName.includes(searchTerm)) show = false;
                 
-                card.style.display = show ? 'block' : 'none';
+                item.style.display = show ? 'block' : 'none';
             });
         }
 
