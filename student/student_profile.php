@@ -77,31 +77,7 @@ if ($result && $row_pending = mysqli_fetch_assoc($result)) {
         <span class="admin-text"><?php echo strtoupper($row['student_fname']); ?></span><br>
         <span class="welcome-text">Selamat Kembali!</span>
       </div>
-      <?php
-        // Replace with your actual notification count variable
-        $notif_count = $pending_count;
-        ?>
-
-        <button onclick="location.href='student_formhistory.php'" style="position: relative; background: none; border: none; cursor: pointer;">
-          <span class="material-symbols-outlined icon" style="font-size: 28px; color: white;">
-            notifications
-          </span>
-
-          <?php if ($notif_count > 0): ?>
-            <span style="
-              position: absolute;
-              top: -5px;
-              right: -5px;
-              background: red;
-              color: white;
-              border-radius: 50%;
-              padding: 4px 7px;
-              font-size: 12px;
-            ">
-              <?php echo $notif_count; ?>
-            </span>
-          <?php endif; ?>
-        </button>
+      <?php include '../includes/notifications_panel.php'; ?>
     </div>
   </header>
 

@@ -151,40 +151,25 @@ $activity_result = $stmt->get_result();
                 if (isset($_SESSION['user_role'])) {
                     if ($_SESSION['user_role'] === 'admin') {
                         echo '<span class="admin-text">' . strtoupper($_SESSION['admin_name'] ?? 'ADMIN') . '</span><br>';
-                    } elseif ($_SESSION['user_role'] === 'teacher' && !empty($teacher['teacher_fname'])) {
-                        echo '<span class="admin-text">' . strtoupper($teacher['teacher_fname']) . '</span><br>';
-                    } elseif ($_SESSION['user_role'] === 'student' && !empty($student['student_fname'])) {
-                        echo '<span class="admin-text">' . strtoupper($student['student_fname']) . '</span><br>';
+                    } elseif ($_SESSION['user_role'] === 'teacher') {
+                        // Get teacher name for header display
+                        $teacher_sql = "SELECT teacher_fname FROM teacher WHERE teacher_ic = ?";
+                        $stmt = $conn->prepare($teacher_sql);
+                        $stmt->bind_param("s", $_SESSION['user_ic']);
+                        $stmt->execute();
+                        $teacher_result = $stmt->get_result();
+                        $teacher_data = $teacher_result->fetch_assoc();
+                        if ($teacher_data) {
+                            echo '<span class="admin-text">' . strtoupper($teacher_data['teacher_fname']) . '</span><br>';
+                        }
+                    } elseif ($_SESSION['user_role'] === 'student') {
+                        echo '<span class="admin-text">' . strtoupper($row['student_fname']) . '</span><br>';
                     }
                 }
                 ?>
                 <span class="welcome-text">Selamat Kembali!</span>
             </div>
-            <?php
-        // Replace with your actual notification count variable
-        $notif_count = $pending_count;
-        ?>
-
-        <button onclick="location.href='student_formhistory.php'" style="position: relative; background: none; border: none; cursor: pointer;">
-          <span class="material-symbols-outlined icon" style="font-size: 28px; color: white;">
-            notifications
-          </span>
-
-          <?php if ($notif_count > 0): ?>
-            <span style="
-              position: absolute;
-              top: -5px;
-              right: -5px;
-              background: red;
-              color: white;
-              border-radius: 50%;
-              padding: 4px 7px;
-              font-size: 12px;
-            ">
-              <?php echo $notif_count; ?>
-            </span>
-          <?php endif; ?>
-        </button>
+            <?php include '../includes/notifications_panel.php'; ?>
         </div>
     </header>
 
