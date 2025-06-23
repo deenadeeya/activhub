@@ -11,6 +11,44 @@ if (!isset($_GET['event_id']) || !is_numeric($_GET['event_id'])) {
 
 $event_id = intval($_GET['event_id']);
 
+// Handle attendance marking
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['mark_attendance'])) {
+    $student_ic = $_POST['student_ic'];
+    $attendance_status = $_POST['attendance_status'];
+    
+    // Update attendance status
+    $update_sql = "UPDATE event_registrations 
+                   SET attendance_status = ? 
+                   WHERE event_id = ? AND student_ic = ?";
+    $stmt = $conn->prepare($update_sql);
+    $stmt->bind_param("sis", $attendance_status, $event_id, $student_ic);
+    
+    if ($stmt->execute()) {
+        $success_message = "Kehadiran telah dikemaskini!";
+    } else {
+        $error_message = "Ralat semasa kemaskini kehadiran!";
+    }
+    $stmt->close();
+}
+
+// Handle bulk attendance marking
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['mark_all_attendance'])) {
+    $bulk_status = $_POST['bulk_status'];
+    
+    $update_sql = "UPDATE event_registrations 
+                   SET attendance_status = ? 
+                   WHERE event_id = ?";
+    $stmt = $conn->prepare($update_sql);
+    $stmt->bind_param("si", $bulk_status, $event_id);
+    
+    if ($stmt->execute()) {
+        $success_message = "Semua kehadiran telah dikemaskini!";
+    } else {
+        $error_message = "Ralat semasa kemaskini kehadiran!";
+    }
+    $stmt->close();
+}
+
 // Fetch event name
 $event_sql = "SELECT event_name FROM events WHERE event_id = $event_id";
 $event_result = mysqli_query($conn, $event_sql);
@@ -53,8 +91,11 @@ $students_result = mysqli_query($conn, $students_sql);
 $total_registered = mysqli_num_rows($students_result);
 $auto_registered_count = 0;
 $manual_registered_count = 0;
+$present_count = 0;
+$absent_count = 0;
+$pending_count = 0;
 
-// Reset result pointer and count registration types
+// Reset result pointer and count registration types and attendance
 if ($students_result) {
     mysqli_data_seek($students_result, 0);
     while ($student = mysqli_fetch_assoc($students_result)) {
@@ -62,6 +103,19 @@ if ($students_result) {
             $auto_registered_count++;
         } else {
             $manual_registered_count++;
+        }
+        
+        // Count attendance
+        switch ($student['attendance_status']) {
+            case 'present':
+                $present_count++;
+                break;
+            case 'absent':
+                $absent_count++;
+                break;
+            default:
+                $pending_count++;
+                break;
         }
     }
     // Reset result pointer for display
@@ -92,7 +146,7 @@ if ($students_result) {
         }
         .event-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: 15px;
             margin-bottom: 20px;
         }
@@ -112,6 +166,12 @@ if ($students_result) {
             color: #666;
             font-size: 0.9em;
             margin-top: 5px;
+        }
+        .additional-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
         }
         .participant-table {
             background: white;
@@ -133,9 +193,79 @@ if ($students_result) {
             background: #f0f9ff;
             color: #0891b2;
         }
+        .attendance-select {
+            padding: 5px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            background: white;
+            min-width: 80px;
+        }
+        .attendance-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            display: inline-block;
+            min-width: 60px;
+            text-align: center;
+        }
+        .badge-present {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .badge-absent {
+            background: #fecaca;
+            color: #dc2626;
+        }
+        .badge-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .mark-all-section {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 2px;
+        }
+        .btn-present { background: #22c55e; color: white; }
+        .btn-absent { background: #ef4444; color: white; }
+        .success-message {
+            background: #dcfce7;
+            color: #166534;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #22c55e;
+        }
+        .error-message {
+            background: #fecaca;
+            color: #dc2626;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ef4444;
+        }
         @media (max-width: 768px) {
             .event-stats {
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .additional-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 480px) {
+            .event-stats {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -171,6 +301,14 @@ if ($students_result) {
 
     <div class="container">
         <h1>SENARAI PESERTA ACARA</h1>
+
+        <!-- Success/Error Messages -->
+        <?php if (isset($success_message)): ?>
+            <div class="success-message">✅ <?php echo $success_message; ?></div>
+        <?php endif; ?>
+        <?php if (isset($error_message)): ?>
+            <div class="error-message">❌ <?php echo $error_message; ?></div>
+        <?php endif; ?>
 
         <!-- Event Summary -->
         <div class="event-summary">
@@ -209,21 +347,51 @@ if ($students_result) {
             <?php endif; ?>
         </div>
 
-        <!-- Statistics -->
+        <!-- Attendance Statistics -->
         <div class="event-stats">
             <div class="stat-card">
                 <div class="stat-number"><?php echo $total_registered; ?></div>
                 <div class="stat-label">Jumlah Peserta</div>
             </div>
-            <?php if ($auto_registered_count > 0): ?>
+            <div class="stat-card">
+                <div class="stat-number" style="color: #22c55e;"><?php echo $present_count; ?></div>
+                <div class="stat-label">Hadir</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" style="color: #ef4444;"><?php echo $absent_count; ?></div>
+                <div class="stat-label">Tidak Hadir</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" style="color: #f59e0b;"><?php echo $pending_count; ?></div>
+                <div class="stat-label">Belum Ditanda</div>
+            </div>
+        </div>
+
+        <!-- Additional Statistics -->
+        <?php if ($auto_registered_count > 0): ?>
+        <div class="additional-stats">
             <div class="stat-card">
                 <div class="stat-number"><?php echo $auto_registered_count; ?></div>
                 <div class="stat-label">Auto-Daftar</div>
             </div>
-            <?php endif; ?>
         </div>
+        <?php endif; ?>
 
         <?php if ($students_result && mysqli_num_rows($students_result) > 0): ?>
+            
+            <!-- Bulk Attendance Marking (Admin/Teacher Only) -->
+            <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'admin' || $_SESSION['user_role'] === 'teacher')): ?>
+            <div class="mark-all-section">
+                <h3 style="margin: 0 0 15px 0; color: #064789;">Tanda Kehadiran Semua</h3>
+                <form method="POST" style="display: inline-block;" onsubmit="return confirm('Adakah anda pasti mahu menandakan semua peserta sebagai ' + this.bulk_status.value + '?');">
+                    <input type="hidden" name="mark_all_attendance" value="1">
+                    <button type="submit" name="bulk_status" value="present" class="btn-small btn-present">✅ Tandakan Semua Hadir</button>
+                    <button type="submit" name="bulk_status" value="absent" class="btn-small btn-absent">❌ Tandakan Semua Tidak Hadir</button>
+                    <button type="submit" name="bulk_status" value="" class="btn-small" style="background: #f59e0b; color: white;">🔄 Reset Semua</button>
+                </form>
+            </div>
+            <?php endif; ?>
+
             <div class="participant-table">
                 <table class="history-table">
                     <thead>
@@ -234,6 +402,9 @@ if ($students_result) {
                             <th>Kelas</th>
                             <th>No. K/P</th>
                             <th>Tarikh Daftar</th>
+                            <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'admin' || $_SESSION['user_role'] === 'teacher')): ?>
+                            <th>Kehadiran</th>
+                            <?php endif; ?>
                         </tr>
                     </thead>
                     <tbody>
@@ -250,6 +421,30 @@ if ($students_result) {
                                 <td><?php echo htmlspecialchars($student['class_name'] ?? 'N/A'); ?></td>
                                 <td><?php echo htmlspecialchars($student['student_ic']); ?></td>
                                 <td><?php echo date('d/m/Y H:i', strtotime($student['registration_date'])); ?></td>
+                                <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'admin' || $_SESSION['user_role'] === 'teacher')): ?>
+                                <td>
+                                    <form method="POST" style="display: inline-block; margin: 0;">
+                                        <input type="hidden" name="mark_attendance" value="1">
+                                        <input type="hidden" name="student_ic" value="<?php echo htmlspecialchars($student['student_ic']); ?>">
+                                        <select name="attendance_status" class="attendance-select" onchange="this.form.submit();">
+                                            <option value="" <?php echo ($student['attendance_status'] === '' || $student['attendance_status'] === null) ? 'selected' : ''; ?>>Belum Ditanda</option>
+                                            <option value="present" <?php echo $student['attendance_status'] === 'present' ? 'selected' : ''; ?>>✅ Hadir</option>
+                                            <option value="absent" <?php echo $student['attendance_status'] === 'absent' ? 'selected' : ''; ?>>❌ Tidak Hadir</option>
+                                        </select>
+                                    </form>
+                                    
+                                    <!-- Display current status as badge -->
+                                    <div style="margin-top: 5px;">
+                                        <?php if ($student['attendance_status'] === 'present'): ?>
+                                            <span class="attendance-badge badge-present">✅ Hadir</span>
+                                        <?php elseif ($student['attendance_status'] === 'absent'): ?>
+                                            <span class="attendance-badge badge-absent">❌ Tidak Hadir</span>
+                                        <?php else: ?>
+                                            <span class="attendance-badge badge-pending">⏳ Belum Ditanda</span>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                                <?php endif; ?>
                             </tr>
                         <?php endwhile; ?>
                     </tbody>

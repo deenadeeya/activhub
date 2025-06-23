@@ -203,6 +203,7 @@ if (isset($_GET['register']) && isset($_GET['event_id'])) {
         </button>
 
         <button class="btn-yellow" onClick="location.href='student_profile.php';">PROFIL MURID</button>
+        <button class="btn-yellow" onClick="location.href='student_events.php';">ACARA SAYA</button>
         <button class="btn-yellow" onClick="location.href='student_cocurricular.php';">PROFIL & AKTIVITI KOKURIKULUM</button>
         <button class="btn-yellow" onClick="location.href='../cocurricular/cocurricular_board.php';">PAPAN KOKURIKULUM</button>
         <form action="../auth/logout.php" method="post">

@@ -24,13 +24,17 @@ if (!$classResult || mysqli_num_rows($classResult) == 0) {
     $classData = mysqli_fetch_assoc($classResult);
     $teacherClass = $classData['class_id'];
 
+    // Initialize message variables
+    $success_message = '';
+    $error_message = '';
+
     // Handle approval action
     if (isset($_POST['approve']) && isset($_POST['activity_id'])) {
         $activity_id = $_POST['activity_id'];
         $currentDateTime = date('Y-m-d H:i:s');
 
         // Get activity details before updating
-        $activity_query = "SELECT student_ic, activity_name FROM cocu_activities WHERE id = '$activity_id'";
+        $activity_query = "SELECT ca.student_ic, ca.activity_name, s.student_fname FROM cocu_activities ca JOIN student s ON ca.student_ic = s.student_ic WHERE ca.id = '$activity_id'";
         $activity_result = mysqli_query($conn, $activity_query);
         $activity_data = mysqli_fetch_assoc($activity_result);
 
@@ -44,16 +48,21 @@ if (!$classResult || mysqli_num_rows($classResult) == 0) {
                 notification_read = 0
             WHERE id = '$activity_id'
         ";
-        mysqli_query($conn, $updateQuery);
-
-        // 🔥 NEW: Create modern notification for approval
-        if ($activity_data) {
-            $notificationService = new NotificationService($conn);
-            $notificationService->notifyActivityStatusChange(
-                $activity_data['student_ic'], 
-                $activity_data['activity_name'], 
-                'approved'
-            );
+        
+        if (mysqli_query($conn, $updateQuery)) {
+            $success_message = "Aktiviti '{$activity_data['activity_name']}' untuk pelajar {$activity_data['student_fname']} telah berjaya diluluskan!";
+            
+            // 🔥 NEW: Create modern notification for approval
+            if ($activity_data) {
+                $notificationService = new NotificationService($conn);
+                $notificationService->notifyActivityStatusChange(
+                    $activity_data['student_ic'], 
+                    $activity_data['activity_name'], 
+                    'approved'
+                );
+            }
+        } else {
+            $error_message = "Ralat berlaku semasa meluluskan aktiviti. Sila cuba lagi.";
         }
     }
 
@@ -64,7 +73,7 @@ if (!$classResult || mysqli_num_rows($classResult) == 0) {
         $currentDateTime = date('Y-m-d H:i:s');
 
         // Get activity details before updating
-        $activity_query = "SELECT student_ic, activity_name FROM cocu_activities WHERE id = '$activity_id'";
+        $activity_query = "SELECT ca.student_ic, ca.activity_name, s.student_fname FROM cocu_activities ca JOIN student s ON ca.student_ic = s.student_ic WHERE ca.id = '$activity_id'";
         $activity_result = mysqli_query($conn, $activity_query);
         $activity_data = mysqli_fetch_assoc($activity_result);
 
@@ -78,25 +87,30 @@ if (!$classResult || mysqli_num_rows($classResult) == 0) {
                 notification_read = 0 
             WHERE id = '$activity_id'
         ";
-        mysqli_query($conn, $updateQuery);
-
-        // 🔥 NEW: Create modern notification for rejection with custom message
-        if ($activity_data) {
-            $notificationService = new NotificationService($conn);
+        
+        if (mysqli_query($conn, $updateQuery)) {
+            $success_message = "Aktiviti '{$activity_data['activity_name']}' untuk pelajar {$activity_data['student_fname']} telah ditolak dengan sebab: {$rejection_remarks}";
             
-            // Create custom rejection notification with remarks
-            $title = "Aktiviti Ditolak";
-            $message = "Aktiviti '{$activity_data['activity_name']}' telah ditolak. Sebab: {$rejection_remarks}";
-            
-            $notificationService->createNotification(
-                $activity_data['student_ic'],
-                'student',
-                'activity',
-                $title,
-                $message,
-                $activity_id,
-                'cocu_activities'
-            );
+            // 🔥 NEW: Create modern notification for rejection with custom message
+            if ($activity_data) {
+                $notificationService = new NotificationService($conn);
+                
+                // Create custom rejection notification with remarks
+                $title = "Aktiviti Ditolak";
+                $message = "Aktiviti '{$activity_data['activity_name']}' telah ditolak. Sebab: {$rejection_remarks}";
+                
+                $notificationService->createNotification(
+                    $activity_data['student_ic'],
+                    'student',
+                    'activity',
+                    $title,
+                    $message,
+                    $activity_id,
+                    'cocu_activities'
+                );
+            }
+        } else {
+            $error_message = "Ralat berlaku semasa menolak aktiviti. Sila cuba lagi.";
         }
     }
 
@@ -336,6 +350,36 @@ if (isset($teacherClass)) {
         .modal-reject-btn:hover {
             background-color: #c82333;
         }
+
+        /* Success and Error Message Styles */
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+            font-size: 1em;
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-left: 4px solid #dc3545;
+            font-size: 1em;
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.2);
+        }
+
+        .message-icon {
+            margin-right: 8px;
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -408,6 +452,19 @@ if (isset($teacherClass)) {
             <h1>Borang Pelajar Untuk Diluluskan</h1>
             <button class="btn-yellow"><a href="../teacher/teacher_dashboard.php">← Kembali ke Papan Pemuka</a></button>
 
+            <!-- Success/Error Messages -->
+            <?php if (!empty($success_message)): ?>
+                <div class="success-message">
+                    <span class="message-icon">✅</span><?php echo htmlspecialchars($success_message); ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if (!empty($error_message)): ?>
+                <div class="error-message">
+                    <span class="message-icon">❌</span><?php echo htmlspecialchars($error_message); ?>
+                </div>
+            <?php endif; ?>
+
             <?php if (mysqli_num_rows($result) > 0): ?>
                 <table border="1" cellpadding="10">
                     <thead>
@@ -474,7 +531,7 @@ if (isset($teacherClass)) {
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <form method="post" style="display:inline;">
+                                    <form method="post" style="display:inline;" onsubmit="return confirm('Adakah anda pasti mahu meluluskan aktiviti ini?');">
                                         <input type="hidden" name="activity_id" value="<?= $row['id'] ?>">
                                         <button type="submit" name="approve" class="btn-green">Luluskan</button>
                                     </form>
@@ -485,7 +542,11 @@ if (isset($teacherClass)) {
                     </tbody>
                 </table>
             <?php else: ?>
-                <p>Tiada borang yang belum diluluskan.</p>
+                <?php if (!empty($success_message) || !empty($error_message)): ?>
+                    <!-- Show message even when no pending forms -->
+                <?php else: ?>
+                    <p>Tiada borang yang belum diluluskan.</p>
+                <?php endif; ?>
             <?php endif ?>
         </div>
 

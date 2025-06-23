@@ -30,7 +30,7 @@ if (!isset($user_role)) {
             <a href="student_formhistory.php">Sejarah Borang</a>
             <a href="student_profile.php">Profil Murid</a>
             <a href="student_cocurricular.php">Profil & Aktiviti Kokurikulum</a>
-            <a href="cocurricular_board.php">Papan Kokurikulum</a>
+            <a href="../cocurricular/cocurricular_board.php">Papan Kokurikulum</a>
         <?php else: ?>
             <a href="index.php">Laman Utama</a>
         <?php endif; ?>
