@@ -1,5 +1,5 @@
 <?php
-include '../connect.php';
+include '../config/connect.php';
 session_start();
 
 // Check if user is logged in and is a teacher
@@ -56,7 +56,7 @@ if ($result->num_rows > 0) {
 
     $genderDropdown = "<select name=\"gender_$id\" required>";
     foreach ($genderOptions as $value => $label) {
-        $selected = ($value == strtolower($gender)) ? 'selected' : '';
+        $selected = ($value == $gender) ? 'selected' : '';
         $genderDropdown .= "<option value=\"$value\" $selected>$label</option>";
     }
     $genderDropdown .= "</select>";

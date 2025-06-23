@@ -1,11 +1,11 @@
 <?php
-session_start();
-include '../connect.php';
-include '../header.php';
+require_once '../includes/session_check.php';
+include '../config/connect.php';
+include '../includes/header.php';
 
 // Check if logged in and role is teacher
 if (!isset($_SESSION['user_ic']) || $_SESSION['user_role'] !== 'teacher') {
-    echo "Unauthorized access. Please <a href='../login.php'>login again</a>.";
+    echo "Unauthorized access. Please <a href='../auth/login.php'>login again</a>.";
     exit;
 }
 
@@ -35,26 +35,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Handle profile picture upload
     $profilePic = $_FILES['teacher_pic'];
-    $uploadDir = "../img/uploads/";
+    $uploadDir = "../assets/img/uploads/";
     $imagePath = "";
 
+    // Ensure upload directory exists
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0777, true);
     }
 
     if (!empty($profilePic['name'])) {
-        $targetFile = $uploadDir . basename($profilePic["name"]);
-        $imageFileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
-        $check = getimagesize($profilePic["tmp_name"]);
-
-        if ($check !== false) {
-            if (move_uploaded_file($profilePic["tmp_name"], $targetFile)) {
-                $imagePath = "img/uploads/" . basename($profilePic["name"]);
+        // Generate unique filename to avoid conflicts
+        $imageFileType = strtolower(pathinfo($profilePic["name"], PATHINFO_EXTENSION));
+        $allowedTypes = ['jpg', 'jpeg', 'png', 'gif'];
+        
+        if (in_array($imageFileType, $allowedTypes)) {
+            $uniqueFileName = time() . '_' . $teacher_ic . '.' . $imageFileType;
+            $targetFile = $uploadDir . $uniqueFileName;
+            
+            // Validate image
+            $check = getimagesize($profilePic["tmp_name"]);
+            if ($check !== false) {
+                // Check file size (limit to 5MB)
+                if ($profilePic["size"] <= 5000000) {
+                    if (move_uploaded_file($profilePic["tmp_name"], $targetFile)) {
+                        $imagePath = "assets/img/uploads/" . $uniqueFileName;
+                        
+                        // Delete old profile picture if it exists
+                        if (!empty($row['teacher_pic']) && strpos($row['teacher_pic'], 'assets/img/uploads/') === 0) {
+                            $oldFile = '../' . $row['teacher_pic'];
+                            if (file_exists($oldFile) && $oldFile !== '../assets/img/profile.jpg') {
+                                unlink($oldFile);
+                            }
+                        }
+                        
+                        echo "<p style='color:green;'>Profile picture uploaded successfully!</p>";
+                    } else {
+                        echo "<p style='color:red;'>Sorry, there was an error uploading your file.</p>";
+                    }
+                } else {
+                    echo "<p style='color:red;'>File is too large. Maximum size is 5MB.</p>";
+                }
             } else {
-                echo "<p style='color:red;'>Sorry, there was an error uploading your file.</p>";
+                echo "<p style='color:red;'>File is not a valid image.</p>";
             }
         } else {
-            echo "<p style='color:red;'>File is not a valid image.</p>";
+            echo "<p style='color:red;'>Only JPG, JPEG, PNG & GIF files are allowed.</p>";
         }
     }
 
@@ -74,7 +99,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $updateQuery .= " WHERE teacher_ic = '$teacher_ic'";
 
-    mysqli_query($conn, $updateQuery);
+    if (mysqli_query($conn, $updateQuery)) {
+        echo "<p style='color:green;'>Profile updated successfully!</p>";
+        // Refresh the page to show updated data
+        echo "<script>setTimeout(function(){ window.location.reload(); }, 2000);</script>";
+    } else {
+        echo "<p style='color:red;'>Error updating profile: " . mysqli_error($conn) . "</p>";
+    }
 }
 
 // Pending approval count
@@ -121,37 +152,28 @@ if ($result && $result->num_rows > 0) {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Profil Guru - SRIAAWP ActivHub</title>
-    <link rel="stylesheet" href="../css/profile.css" />
+    <link rel="stylesheet" href="../assets/css/profile.css" />
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    <link rel="icon" type="image/x-icon" href="../img/favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico" />
 </head>
 
 <body>
     <header>
         <div class="logo-section">
-            <img src="../img/logo.png" alt="Logo" />
+            <img src="../assets/img/logo.png" alt="Logo" />
             <div class="logo-text">
                 <span>SRIAAWP ActivHub</span>
-                <?php include '../navlinks.php'; ?>
+                <?php include '../includes/navlinks.php'; ?>
             </div>
         </div>
 
         <div class="icon-section">
-            <div class="admin-section">
+            <div class="user-section">
                 <span class="admin-text"><?php echo strtoupper(htmlspecialchars($row['teacher_fname'])); ?></span><br>
                 <span class="welcome-text">Selamat Kembali!</span>
             </div>
-                <button onclick="location.href='../approve_form.php'" style="position: relative; background: none; border: none; cursor: pointer;">
-                    <span class="material-symbols-outlined icon" style="font-size: 28px; color: white;">
-                    notifications
-                    </span>
-                    <?php if ($pending_count > 0): ?>
-                    <span style="position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; padding: 4px 7px; font-size: 12px;">
-                        <?php echo $pending_count; ?>
-                    </span>
-                    <?php endif; ?>
-                </button>
+            <?php include '../includes/notifications_panel.php'; ?>
         </div>
     </header>
 
@@ -163,7 +185,35 @@ if ($result && $result->num_rows > 0) {
                 <section class="left-card">
                     <div class="profile-header">
                         <div class="pic-container">
-                            <img src="../<?php echo !empty($row['teacher_pic']) ? htmlspecialchars($row['teacher_pic']) : 'img/profile.jpg'; ?>" alt="Profile Image" class="profile-pic" />
+                            <?php 
+                            // Handle profile picture display with proper path resolution
+                            $profile_pic_path = '';
+                            if (!empty($row['teacher_pic'])) {
+                                $pic_path = $row['teacher_pic'];
+                                
+                                // Check if it's an old path or new path
+                                if (strpos($pic_path, 'assets/') === 0) {
+                                    // New path format - use as is
+                                    $profile_pic_path = '../' . $pic_path;
+                                } elseif (strpos($pic_path, 'img/uploads/') === 0) {
+                                    // Old path format - convert to new format
+                                    $filename = basename($pic_path);
+                                    $profile_pic_path = '../assets/img/uploads/' . $filename;
+                                } else {
+                                    // Assume it's just a filename
+                                    $profile_pic_path = '../assets/img/uploads/' . basename($pic_path);
+                                }
+                                
+                                // Check if file actually exists, if not use default
+                                $absolute_path = __DIR__ . '/' . $profile_pic_path;
+                                if (!file_exists($absolute_path)) {
+                                    $profile_pic_path = '../assets/img/profile.jpg';
+                                }
+                            } else {
+                                $profile_pic_path = '../assets/img/profile.jpg';
+                            }
+                            ?>
+                            <img src="<?php echo htmlspecialchars($profile_pic_path); ?>" alt="Profile Image" class="profile-pic" />
                             <div class="upload-btn">
                                 <!-- <label for="teacher_pic">GAMBAR PROFIL:</label> -->
                                 <input type="file" name="teacher_pic" id="teacher_pic" accept="image/*" />

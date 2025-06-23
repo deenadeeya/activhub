@@ -1,10 +1,11 @@
 <?php
-require_once '../connect.php';
-session_start();
-include '../header.php';
+require_once '../config/connect.php';
+require_once '../includes/session_check.php';
+require_once '../includes/NotificationService.php';
+include '../includes/header.php';
 
 if (!isset($_SESSION['user_ic']) || $_SESSION['user_role'] !== 'teacher') {
-  header("Location: ../login.php?expired=true");
+  header("Location: ../auth/login.php?expired=true");
   exit();
 }
 
@@ -47,22 +48,9 @@ if ($result && $result->num_rows > 0) {
     $class_name = "Belum ditetapkan";
   }
 
-  // Pending approval count
-  $pending_count = 0;
-  if ($teacher_class_id) {
-    $pending_query = "
-            SELECT COUNT(*) AS total_pending
-            FROM cocu_activities ca
-            JOIN student s ON ca.student_ic = s.student_ic
-            WHERE ca.approval_status = 'pending' AND s.student_class = ?
-        ";
-    $stmt = $conn->prepare($pending_query);
-    $stmt->bind_param("s", $teacher_class_id);
-    $stmt->execute();
-    $pending_result = $stmt->get_result();
-    $pending_data = $pending_result->fetch_assoc();
-    $pending_count = $pending_data['total_pending'];
-  }
+  // Pending approval count - Use NotificationService
+  $notificationService = new NotificationService($conn);
+  $pending_count = $notificationService->getUnreadCount($teacher_ic);
 
   // Leaderboard
   $leaderboard_query = "
@@ -75,7 +63,7 @@ if ($result && $result->num_rows > 0) {
     ";
   $leaderboard_result = mysqli_query($conn, $leaderboard_query);
 } else {
-  header("Location: ../login.php?expired=true");
+  header("Location: ../auth/login.php?expired=true");
   exit();
 }
 ?>
@@ -88,20 +76,20 @@ if ($result && $result->num_rows > 0) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Guru Dashboard - SRIAAWP ActivHub</title>
   <link href="http://fonts.googleapis.com/css?family=Lato:300,400,700" rel="stylesheet" type="text/css">
-  <link rel="stylesheet" href="../css/dash.css" />
-  <link rel="stylesheet" href="../css/header&bg.css" />
+  <link rel="stylesheet" href="../assets/css/dash.css" />
+  <link rel="stylesheet" href="../assets/css/header&bg.css" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-  <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+  <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
 </head>
 
 <body>
 
   <header>
     <div class="logo-section">
-      <img src="../img/logo.png" alt="Logo" />
+      <img src="../assets/img/logo.png" alt="Logo" />
       <div class="logo-text">
         <span>SRIAAWP ActivHub</span>
-        <?php include '../navlinks.php'; ?>
+        <?php include '../includes/navlinks.php'; ?>
       </div>
     </div>
     <div class="icon-section">
@@ -109,22 +97,13 @@ if ($result && $result->num_rows > 0) {
         <span class="admin-text"><?php echo strtoupper($teacher['teacher_fname']); ?></span><br>
         <span class="welcome-text">Selamat Kembali!</span>
       </div>
-      <button onclick="location.href='../approve_form.php'" style="position: relative; background: none; border: none; cursor: pointer;">
-        <span class="material-symbols-outlined icon" style="font-size: 28px; color: white;">
-          notifications
-        </span>
-        <?php if ($pending_count > 0): ?>
-          <span style="position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; padding: 4px 7px; font-size: 12px;">
-            <?php echo $pending_count; ?>
-          </span>
-        <?php endif; ?>
-      </button>
+      <?php include '../includes/notifications_panel.php'; ?>
     </div>
   </header>
 
   <div class="container">
     <div class="welcome-section">
-      <img src="../img/logo.png" alt="Logo">
+      <img src="../assets/img/logo.png" alt="Logo">
       <div class="welcome-texts">
         <h1>Selamat Datang ke SRIAAWP ActivHub</h1>
         <h2>"Pusat Rekod Kokurikulum Pelajar SRI AL-AMIN WILAYAH PERSEKUTUAN"</h2>
@@ -137,16 +116,26 @@ if ($result && $result->num_rows > 0) {
         <p>
         <div class="salam">السلام عليكم</div><?php echo strtoupper($teacher['teacher_fname']); ?></p>
 
+        <?php if ($pending_count > 0): ?>
+        <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+          <h4 style="margin: 0 0 10px 0; color: #856404;">📢 Pemberitahuan Pending</h4>
+          <p style="margin: 0; color: #856404;">
+            Anda mempunyai <strong><?php echo $pending_count; ?></strong> pemberitahuan yang belum dibaca.
+            <a href="notifications.php" style="color: #856404; text-decoration: underline;">Lihat semua</a>
+          </p>
+        </div>
+        <?php endif; ?>
+
         <!-- <h3>Class Info</h3>
         <p><strong>Class Name:</strong> <?php echo htmlspecialchars($class_name); ?></p>
         <p><strong>Class ID:</strong> <?php echo htmlspecialchars($teacher_class_id ?? 'N/A'); ?></p>
         <p><strong>Number of Students:</strong> <?php echo $student_count; ?></p>
         <p><strong>Pending Approvals:</strong> <?php echo $pending_count; ?></p> -->
 
-        <button class="btn-yellow" onclick="window.location.href='../audit_history.php'">BORANG SEJARAH</button>
+        <button class="btn-yellow" onclick="window.location.href='../forms/audit_history.php'">BORANG SEJARAH</button>
         <button class="btn-yellow" onclick="window.location.href='../teacher/teacher_profile.php'">PROFIL GURU</button>
-        <button class="btn-yellow" onclick="window.location.href='../studentList.php'">SENARAI PELAJAR</button>
-        <button class="btn-yellow" onclick="location.href='../approve_form.php'" style="position: relative;">
+        <button class="btn-yellow" onclick="window.location.href='../student/studentList.php'">SENARAI PELAJAR</button>
+        <button class="btn-yellow" onclick="location.href='../forms/approve_form.php'" style="position: relative;" title="Klik untuk melihat senarai borang yang menunggu kelulusan">
           SENARAI BORANG
           <?php if ($pending_count > 0): ?>
             <span style="position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; padding: 4px 7px; font-size: 12px;">
@@ -154,10 +143,10 @@ if ($result && $result->num_rows > 0) {
             </span>
           <?php endif; ?>
         </button>
-        <button class="btn-yellow" onclick="location.href='../student_cocuactivityform.php'">TAMBAH AKTIVITI MURID</button>
-        <button class="btn-yellow" onclick="location.href='../add_events.php'">TAMBAH ACARA KOKURIKULUM</button>
-        <button class="btn-yellow" onclick="location.href ='../cocurricular_board.php'">PAPAN KOKURIKULUM</button>
-        <form action="../logout.php" method="post">
+        <button class="btn-yellow" onclick="location.href='../student/student_cocuactivityform.php'">TAMBAH AKTIVITI MURID</button>
+        <button class="btn-yellow" onclick="location.href='../events/add_events.php'">TAMBAH ACARA KOKURIKULUM</button>
+        <button class="btn-yellow" onclick="location.href ='../cocurricular/cocurricular_board.php'">PAPAN KOKURIKULUM</button>
+        <form action="../auth/logout.php" method="post">
           <button type="submit" class="btn-red">DAFTAR KELUAR</button>
         </form>
       </div>
@@ -205,11 +194,10 @@ if ($result && $result->num_rows > 0) {
             if (!$show) continue;
 
             $reg_count = 0;
-            if ($teacher_class_id) {
-              $check_participants = "
+            if ($teacher_class_id) {                        $check_participants = "
                             SELECT COUNT(*) AS total
                             FROM event_registrations er
-                            JOIN student s ON er.student_id = s.student_ic
+                            JOIN student s ON er.student_ic = s.student_ic
                             WHERE er.event_id = ? AND s.student_class = ?
                         ";
               $stmt = $conn->prepare($check_participants);
@@ -232,8 +220,8 @@ if ($result && $result->num_rows > 0) {
                 Hubungi: <?php echo htmlspecialchars($event['contact_number']); ?><br>
               <?php endif; ?>
               <p style="color: <?= $color ?>; font-weight: bold;">Status: <?= $status ?></p>
-              <button class="btn-status-blue" onclick="window.location.href='../event_participants.php?event_id=<?php echo $event['event_id']; ?>'">Senarai Peserta</button>
-              <button class="btn-status-blue" onclick="window.location.href='../edit_events.php?event_id=<?php echo $event['event_id']; ?>'">Kemaskini Acara</button>
+              <button class="btn-status-blue" onclick="window.location.href='../events/event_participants.php?event_id=<?php echo $event['event_id']; ?>'">Senarai Peserta</button>
+              <button class="btn-status-blue" onclick="window.location.href='../events/edit_events.php?event_id=<?php echo $event['event_id']; ?>'">Kemaskini Acara</button>
 
             </div>
           <?php endwhile;

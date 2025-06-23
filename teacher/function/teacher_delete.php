@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: application/json');
-require_once '../../connect.php';
+require_once '../../config/connect.php';
 
 $response = ['status' => 0, 'error' => ''];
 

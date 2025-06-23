@@ -1,5 +1,5 @@
 <?php
-include '..\..\connect.php';
+include '../../config/connect.php';
 
 $input = json_decode(file_get_contents("php://input"), true);
 $id = $input['id'] ?? 0;
@@ -21,38 +21,72 @@ if (mysqli_num_rows($result) > 0) {
     }
 
     $message = "
-    <form>
-        <table style=\"width: 100%;\">
-            <tr>
-                <td>Name:</td>
-                <td><input type=\"text\" name=\"edit_name_{$row["student_ic"]}\" value=\"{$row["student_fname"]}\" required></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td>Class:</td>
-                <td>
-                    <select name=\"class_{$row["student_ic"]}\" required>$options</select>
-                </td>
-                <td style=\"text-align: right;\">
-                    <input type=\"button\" value=\"Save Change\" onclick=\"save({$row["student_ic"]})\" class=\"button_save\">
-                </td>
-            </tr>
-            <tr>
-                <td>IC Number:</td>
-                <td><input type=\"text\" value=\"{$row["student_ic"]}\" readonly></td>
-                <td style=\"text-align: right;\">
-                    <input type=\"button\" value=\"Delete\" class=\"button_delete\">
-                </td>
-            </tr>
-            <tr>
-                <td>Password:</td>
-                <td><input type=\"password\" name=\"edit_password_{$row["student_ic"]}\"></td>
-                <td style=\"text-align: right;\">
-                    <input type=\"button\" value=\"Cancel\" onclick=\"cancel({$row["student_ic"]})\" class=\"button_cancel\">
-                </td>
-            </tr>
-        </table>
-    </form>";
+    <div class=\"student-info\">
+        <div class=\"edit-form\">
+            <div class=\"form-group\">
+                <label><strong>Nama:</strong></label>
+                <input type=\"text\" name=\"edit_name_{$row["student_ic"]}\" value=\"{$row["student_fname"]}\" class=\"form-input\" required>
+            </div>
+            <div class=\"form-group\">
+                <label><strong>Kelas:</strong></label>
+                <select name=\"class_{$row["student_ic"]}\" class=\"form-input\" required>$options</select>
+            </div>
+            <div class=\"form-group\">
+                <label><strong>Matrik:</strong></label>
+                <input type=\"text\" value=\"{$row["matrix"]}\" class=\"form-input\" readonly>
+            </div>
+            <div class=\"form-group\">
+                <label><strong>Nombor Kad Pengenalan:</strong></label>
+                <input type=\"text\" value=\"{$row["student_ic"]}\" class=\"form-input\" readonly>
+            </div>
+            <div class=\"form-group\">
+                <label><strong>Password Baru:</strong></label>
+                <input type=\"password\" name=\"edit_password_{$row["student_ic"]}\" class=\"form-input\" placeholder=\"Kosongkan jika tidak mahu ubah\">
+            </div>
+        </div>
+    </div>
+    <div class=\"student-actions\">
+        <button class=\"btn-save\" onclick=\"save({$row["student_ic"]})\">Simpan</button>
+        <button class=\"btn-cancel\" onclick=\"cancel({$row["student_ic"]})\">Batal</button>
+    </div>
+    <style>
+        .edit-form .form-group {
+            margin-bottom: 15px;
+        }
+        .edit-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        .edit-form .form-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .btn-save {
+            background-color: #28a745;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 5px;
+            width: 100%;
+        }
+        .btn-cancel {
+            background-color: #6c757d;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn-save:hover { background-color: #218838; }
+        .btn-cancel:hover { background-color: #5a6268; }
+    </style>";
 } else {
     $message = "Student not found.";
 }

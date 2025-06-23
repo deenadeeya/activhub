@@ -1,21 +1,49 @@
 <?php
-session_start();
+require_once '../../includes/session_check.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 // 1. Database Connection
-require_once __DIR__ . '/../../connect.php';
+require_once __DIR__ . '/../../config/connect.php';
 if (!$conn) {
     die("Database connection failed: " . mysqli_connect_error());
 }
 
-// 2. PhpSpreadsheet Setup
+// 2. Check for ZipArchive extension
+if (!class_exists('ZipArchive')) {
+    $_SESSION['import_result'] = [
+        'success' => 0,
+        'invalid' => 0,
+        'duplicate' => 0,
+        'fail' => 1,
+        'errors' => [
+            "ZipArchive extension is not enabled on your server.",
+            "To fix this:",
+            "1. Open XAMPP Control Panel",
+            "2. Click 'Config' next to Apache",
+            "3. Select 'PHP (php.ini)'",
+            "4. Find ';extension=zip' and remove the semicolon",
+            "5. Save and restart Apache",
+            "Alternative: Use CSV import instead"
+        ]
+    ];
+    header("Location: ../admin_studentList.php");
+    exit();
+}
+
+// 3. PhpSpreadsheet Setup
 require '../../vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
-if (isset($_FILES['excel_file']['tmp_name'])) {
+if (isset($_FILES['excel_file']) && $_FILES['excel_file']['error'] == UPLOAD_ERR_OK) {
     try {
+        // Check file type
+        $fileExtension = strtolower(pathinfo($_FILES['excel_file']['name'], PATHINFO_EXTENSION));
+        if (!in_array($fileExtension, ['xlsx', 'xls'])) {
+            throw new Exception("Invalid file type. Please upload an Excel file (.xlsx or .xls)");
+        }
+
         // 3. Load Excel File
         $spreadsheet = IOFactory::load($_FILES['excel_file']['tmp_name']);
         $sheet = $spreadsheet->getActiveSheet();
@@ -59,9 +87,7 @@ if (isset($_FILES['excel_file']['tmp_name'])) {
                 return $v !== null && $v !== '';
             })) == 0) {
                 continue;
-            }
-
-            // 7. Map and Validate Data
+            }            // 7. Map and Validate Data
             $data = [
                 'name' => trim($row[0] ?? ''),
                 'matrix' => trim($row[1] ?? ''),
@@ -83,7 +109,7 @@ if (isset($_FILES['excel_file']['tmp_name'])) {
             }
 
             if (!in_array($data['gender'], ['M', 'L', 'F', 'P'])) {
-                $errors[] = "Invalid gender";
+                $errors[] = "Invalid gender (must be M/L for Male, F/P for Female)";
             }
 
             if (!empty($errors)) {
@@ -139,24 +165,47 @@ if (isset($_FILES['excel_file']['tmp_name'])) {
                 $results['fail']++;
                 $results['errors'][] = "Row " . ($i + 1) . ": Insert failed - " . $insert_stmt->error;
             }
-        }
-
-        // 12. Prepare Result Message
+        }        // 12. Prepare Result Message
         $_SESSION['import_result'] = [
             'success' => $results['success'],
             'invalid' => $results['invalid'],
             'duplicate' => $results['duplicate'],
             'fail' => $results['fail'],
-            'errors' => array_slice($results['errors'], 0, 5) // Show first 5 errors
+            'errors' => array_slice($results['errors'], 0, 10) // Show first 10 errors
         ];
     } catch (Exception $e) {
-        $_SESSION['import_result'] = "IMPORT ERROR:\n\n" . $e->getMessage();
-    }
-
-    header("Location: ../admin_studentList.php");
+        $_SESSION['import_result'] = [
+            'success' => 0,
+            'invalid' => 0,
+            'duplicate' => 0,
+            'fail' => 1,
+            'errors' => ["IMPORT ERROR: " . $e->getMessage()]
+        ];
+    }header("Location: ../admin_studentList.php");
     exit();
 } else {
-    $_SESSION['import_result'] = "Error: No file uploaded";
+    // Handle file upload errors
+    $error_message = "Error: ";
+    if (!isset($_FILES['excel_file'])) {
+        $error_message .= "No file uploaded";
+    } else {
+        switch($_FILES['excel_file']['error']) {
+            case UPLOAD_ERR_INI_SIZE:
+            case UPLOAD_ERR_FORM_SIZE:
+                $error_message .= "File too large";
+                break;
+            case UPLOAD_ERR_PARTIAL:
+                $error_message .= "File upload incomplete";
+                break;
+            case UPLOAD_ERR_NO_FILE:
+                $error_message .= "No file selected";
+                break;
+            default:
+                $error_message .= "File upload failed";
+        }
+    }
+    
+    $_SESSION['import_result'] = $error_message;
     header("Location: ../admin_studentList.php");
     exit();
 }

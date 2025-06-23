@@ -1,0 +1,182 @@
+/* Stylish table for history pages */
+.history-table {
+    width: 95%;
+    border-collapse: collapse;
+    margin: 24px 0;
+    font-size: 1rem;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.07);
+    background: #fff;
+}
+
+.history-table thead tr {
+    background-color: #064789;
+    color: #fff;
+    text-align: left;
+}
+
+.history-table th, .history-table td {
+    padding: 12px 15px;
+    border: 1px solid #e0e0e0;
+    text-align: left;
+    vertical-align: top;
+}
+
+.history-table tbody tr {
+    background-color: #f9f9f9;
+}
+
+.history-table tbody tr:nth-child(even) {
+    background-color: #f1f6fa;
+}
+
+.history-table tbody tr:hover {
+    background-color: #e3eefd;
+}
+
+.history-table a {
+    color: #064789;
+    text-decoration: underline;
+}
+
+.history-table th {
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+/* Responsive table layout */
+@media (max-width: 1200px) {
+    .history-table {
+        font-size: 0.9rem;
+    }
+    
+    .history-table th, .history-table td {
+        padding: 10px 8px;
+    }
+}
+
+@media (max-width: 768px) {
+    .history-table {
+        font-size: 0.8rem;
+        width: 100%;
+    }
+    
+    .history-table th, .history-table td {
+        padding: 8px 6px;
+    }
+}
+
+/* Audit table specific column widths (for detailed audit view) */
+.audit-table th:nth-child(1), .audit-table td:nth-child(1) { /* Nama Pelajar */
+    width: 15%;
+    min-width: 120px;
+}
+
+.audit-table th:nth-child(2), .audit-table td:nth-child(2) { /* Kelas */
+    width: 6%;
+    max-width: 60px;
+}
+
+.audit-table th:nth-child(3), .audit-table td:nth-child(3) { /* IC */
+    width: 8%;
+}
+
+.audit-table th:nth-child(5), .audit-table td:nth-child(5) { /* Tarikh */
+    width: 8%;
+}
+
+.audit-table th:nth-child(6), .audit-table td:nth-child(6) { /* Kategori */
+    width: 7%;
+}
+
+.audit-table th:nth-child(9), .audit-table td:nth-child(9) { /* Sijil */
+    width: 6%;
+}
+
+.audit-table th:nth-child(10), .audit-table td:nth-child(10) { /* Status */
+    width: 8%;
+}
+
+.audit-table th:nth-child(11), .audit-table td:nth-child(11) { /* Disahkan Oleh */
+    width: 18%;
+    min-width: 140px;
+}
+
+.audit-table th:nth-child(13), .audit-table td:nth-child(13) { /* Tindakan */
+    width: 8%;
+}
+
+/* Student form history table specific column widths (10 columns) */
+.student-form-table th:nth-child(1), .student-form-table td:nth-child(1) { /* Tarikh */
+    width: 10%;
+}
+
+.student-form-table th:nth-child(2), .student-form-table td:nth-child(2) { /* Nama Aktiviti */
+    width: 18%;
+    min-width: 140px;
+}
+
+.student-form-table th:nth-child(3), .student-form-table td:nth-child(3) { /* Kategori */
+    width: 8%;
+}
+
+.student-form-table th:nth-child(4), .student-form-table td:nth-child(4) { /* Lokasi */
+    width: 12%;
+}
+
+.student-form-table th:nth-child(5), .student-form-table td:nth-child(5) { /* Peringkat */
+    width: 8%;
+}
+
+.student-form-table th:nth-child(6), .student-form-table td:nth-child(6) { /* Pencapaian */
+    width: 10%;
+}
+
+.student-form-table th:nth-child(7), .student-form-table td:nth-child(7) { /* Sijil */
+    width: 6%;
+}
+
+.student-form-table th:nth-child(8), .student-form-table td:nth-child(8) { /* Status */
+    width: 8%;
+}
+
+.student-form-table th:nth-child(9), .student-form-table td:nth-child(9) { /* Disahkan Oleh */
+    width: 15%;
+    min-width: 120px;
+}
+
+.student-form-table th:nth-child(10), .student-form-table td:nth-child(10) { /* Tarikh Disahkan */
+    width: 10%;
+}
+
+/* Status styling for better visual feedback */
+.history-table .status-pending {
+    color: #ff9800;
+    font-weight: bold;
+}
+
+.history-table .status-approved {
+    color: #4caf50;
+    font-weight: bold;
+}
+
+.history-table .status-rejected {
+    color: #f44336;
+    font-weight: bold;
+}
+
+/* Button styling consistency */
+.history-table .btn-green {
+    background-color: #4caf50;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background-color 0.3s;
+}
+
+.history-table .btn-green:hover {
+    background-color: #45a049;
+}

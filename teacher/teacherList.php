@@ -1,7 +1,15 @@
 <?php
-session_start();
-require_once '../connect.php';
-include '../header.php';
+require_once '../includes/session_check.php';
+require_once '../config/connect.php';
+include '../includes/header.php';
+
+// Handle admin notification marking for teacher monitoring
+if (isset($_GET['notification_id'])) {
+    require_once '../includes/NotificationService.php';
+    $notification_id = intval($_GET['notification_id']);
+    $notificationService = new NotificationService($conn);
+    $notificationService->markAsRead($notification_id, $_SESSION['user_ic']);
+}
 
 // Get all teachers and their class assignments (if any)
 $sql = "SELECT t.*, c.class_id, c.class_name 
@@ -18,26 +26,26 @@ $result = mysqli_query($conn, $sql);
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Senarai Guru - SRI AL-AMIN ActivHub</title>
-    <link rel="stylesheet" href="../css/teacherList.css" />
+    <link rel="stylesheet" href="../assets/css/teacherList.css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../assets/img/favicon.ico">
 </head>
 
 <body>
     <header>
         <div class="logo-section">
-            <img src="../img/logo.png" alt="Logo" />
+            <img src="../assets/img/logo.png" alt="Logo" />
             <div class="logo-text">
                 <span>SRIAAWP ActivHub</span>
-                <?php include '../navlinks.php'; ?>
+                <?php include '../includes/navlinks.php'; ?>
             </div>
         </div>
         <div class="icon-section">
             <div class="user-section">
                 <span class="welcome-text">Selamat Kembali!<br> <?= htmlspecialchars($_SESSION['user_ic']) ?></span>
             </div>
-            <span class="material-symbols-outlined icon">notifications</span>
+            <?php include '../includes/notifications_panel.php'; ?>
         </div>
     </header>
 
@@ -134,12 +142,12 @@ $result = mysqli_query($conn, $sql);
             const formData = {
                 id: id,
                 name: document.querySelector(`input[name="edit_name_${id}"]`).value,
-                uname: document.querySelector(`input[name="edit_uname_${id}"]`).value,
+                teacher_uname: document.querySelector(`input[name="edit_teacher_uname_${id}"]`).value,
                 password: document.querySelector(`input[name="edit_password_${id}"]`).value,
                 class: document.querySelector(`select[name="class_${id}"]`).value
             };
 
-            if (!formData.name || !formData.uname) {
+            if (!formData.name || !formData.teacher_uname) {
                 alert('Sila isi nama dan username!');
                 return;
             }
