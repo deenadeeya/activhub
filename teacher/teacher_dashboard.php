@@ -143,14 +143,6 @@ if ($result && $result->num_rows > 0) {
             </span>
           <?php endif; ?>
         </button>
-        <button class="btn-blue" onclick="location.href='notifications.php'" style="position: relative;" title="Klik untuk melihat semua pemberitahuan">
-          PEMBERITAHUAN
-          <?php if ($pending_count > 0): ?>
-            <span style="position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; padding: 4px 7px; font-size: 12px;">
-              <?php echo $pending_count; ?>
-            </span>
-          <?php endif; ?>
-        </button>
         <button class="btn-yellow" onclick="location.href='../student/student_cocuactivityform.php'">TAMBAH AKTIVITI MURID</button>
         <button class="btn-yellow" onclick="location.href='../events/add_events.php'">TAMBAH ACARA KOKURIKULUM</button>
         <button class="btn-yellow" onclick="location.href ='../cocurricular/cocurricular_board.php'">PAPAN KOKURIKULUM</button>
