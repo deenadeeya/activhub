@@ -157,7 +157,7 @@ class NotificationService {
             'pending' => 'dalam semakan'
         ];
         
-        $title = "Status Borangg Aktiviti Dikemaskini";
+        $title = "Status Borang Aktiviti Dikemaskini";
         
         if (!empty($custom_message)) {
             // Use custom message (like rejection with reasons)
@@ -269,6 +269,31 @@ class NotificationService {
         }
         
         return count($members); // Return number of members notified
+    }
+    
+    /**
+     * Activity Form Notifications for Teachers
+     */
+    public function notifyTeacherActivitySubmission($teacher_ic, $student_ic, $activity_name, $activity_id, $is_resubmission = false) {
+        // Get student name for personalized message
+        $student_query = "SELECT student_fname FROM student WHERE student_ic = ?";
+        $stmt = $this->conn->prepare($student_query);
+        $stmt->bind_param("s", $student_ic);
+        $stmt->execute();
+        $student_result = $stmt->get_result()->fetch_assoc();
+        $student_name = $student_result['student_fname'] ?? 'Murid';
+        
+        if ($is_resubmission) {
+            $title = "Borang Aktiviti Dihantar Semula";
+            $message = "{$student_name} telah menghantar semula borang aktiviti '{$activity_name}' untuk semakan semula.";
+            $type = 'activity_resubmission';
+        } else {
+            $title = "Borang Aktiviti Baru";
+            $message = "{$student_name} telah menghantar borang aktiviti '{$activity_name}' untuk kelulusan anda.";
+            $type = 'activity_submission';
+        }
+        
+        $this->createNotification($teacher_ic, 'teacher', $type, $title, $message, $activity_id, 'cocu_activities');
     }
 }
 ?>

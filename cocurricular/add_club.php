@@ -160,35 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ?>
                 <span class="welcome-text">Selamat Kembali!</span>
             </div>
-                  <?php
-        // Replace with your actual notification count variable
-        $notif_count = $pending_count;
-        $notif_link = "../student/student_formhistory.php";
-        if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'teacher') {
-            $notif_link = "../forms/approve_form.php";
-        }
-        ?>
-
-        <button onclick="location.href='<?php echo $notif_link; ?>'" style="position: relative; background: none; border: none; cursor: pointer;">
-          <span class="material-symbols-outlined icon" style="font-size: 28px; color: white;">
-            notifications
-          </span>
-
-          <?php if ($notif_count > 0): ?>
-            <span style="
-              position: absolute;
-              top: -5px;
-              right: -5px;
-              background: red;
-              color: white;
-              border-radius: 50%;
-              padding: 4px 7px;
-              font-size: 12px;
-            ">
-              <?php echo $notif_count; ?>
-            </span>
-          <?php endif; ?>
-        </button>
+            <?php include '../includes/notifications_panel.php'; ?>
         </div>
     </header>
 

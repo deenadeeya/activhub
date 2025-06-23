@@ -5,7 +5,7 @@ require_once '../includes/NotificationService.php';
 
 header('Content-Type: application/json');
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+if (!in_array($_SERVER['REQUEST_METHOD'], ['POST', 'GET'])) {
     http_response_code(405);
     echo json_encode(['error' => 'Method not allowed']);
     exit;
@@ -20,6 +20,20 @@ if (!isset($_SESSION['user_ic'])) {
 $user_ic = $_SESSION['user_ic'];
 $notificationService = new NotificationService($conn);
 
+// Handle GET request (simple notification ID)
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
+    $notification_id = intval($_GET['id']);
+    
+    if ($notificationService->markAsRead($notification_id, $user_ic)) {
+        echo json_encode(['success' => true, 'message' => 'Notification marked as read']);
+    } else {
+        http_response_code(500);
+        echo json_encode(['error' => 'Failed to mark notification as read']);
+    }
+    exit;
+}
+
+// Handle POST request (JSON input)
 $input = json_decode(file_get_contents('php://input'), true);
 
 if (isset($input['mark_all']) && $input['mark_all']) {

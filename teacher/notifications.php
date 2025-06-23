@@ -4,7 +4,7 @@ require_once '../includes/session_check.php';
 require_once '../includes/NotificationService.php';
 include '../includes/header.php';
 
-if (!isset($_SESSION['user_ic']) || $_SESSION['user_role'] !== 'student') {
+if (!isset($_SESSION['user_ic']) || $_SESSION['user_role'] !== 'teacher') {
   header("Location: ../auth/login.php?expired=true");
   exit();
 }
@@ -33,13 +33,8 @@ $total_pages = ceil($total_notifications / $per_page);
 // Get notifications for current page
 $notifications = array_slice($all_notifications, $offset, $per_page);
 
-// Get student info
-$sql = "
-  SELECT s.*, c.class_year 
-  FROM student s
-  JOIN class c ON s.student_class = c.class_id
-  WHERE s.student_ic = '$user_ic'
-";
+// Get teacher info
+$sql = "SELECT * FROM teacher WHERE teacher_ic = '$user_ic'";
 $result = mysqli_query($conn, $sql);
 $row = mysqli_fetch_assoc($result);
 ?>
@@ -49,7 +44,8 @@ $row = mysqli_fetch_assoc($result);
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pemberitahuan - SRIAAWP ActivHub</title>  <link rel="stylesheet" href="../assets/css/header&bg.css" />
+  <title>Pemberitahuan - SRIAAWP ActivHub</title>
+  <link rel="stylesheet" href="../assets/css/header&bg.css" />
   <link rel="stylesheet" href="../assets/css/dash.css" />
   <link rel="stylesheet" href="../assets/css/button.css" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
@@ -60,7 +56,7 @@ $row = mysqli_fetch_assoc($result);
       margin: 0 auto;
       padding: 20px;
     }
-      .notification-item {
+    .notification-item {
       background: white;
       border-radius: 8px;
       padding: 20px;
@@ -150,26 +146,6 @@ $row = mysqli_fetch_assoc($result);
       padding: 60px 20px;
       color: #999;
     }
-    
-    .filter-tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      border-bottom: 1px solid #e0e0e0;
-    }
-    
-    .filter-tab {
-      padding: 10px 15px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-    }
-    
-    .filter-tab.active {
-      border-bottom-color: #2196f3;
-      color: #2196f3;
-    }
   </style>
 </head>
 
@@ -184,7 +160,7 @@ $row = mysqli_fetch_assoc($result);
     </div>
     <div class="icon-section">
       <div class="user-section">
-        <span class="admin-text"><?= strtoupper($row['student_fname']) ?></span><br>
+        <span class="admin-text"><?= strtoupper($row['teacher_fname']) ?></span><br>
         <span class="welcome-text">Selamat Kembali!</span>
       </div>
       <?php include '../includes/notifications_panel.php'; ?>
@@ -194,39 +170,42 @@ $row = mysqli_fetch_assoc($result);
   <div class="container">
     <div class="notifications-container">
       <h1>PEMBERITAHUAN</h1>
-        <div style="margin-bottom: 20px;">
-        <div class="btn-yellow"><a href="student_dashboard.php">← Kembali ke Dashboard</a></div>
+      
+      <div style="margin-bottom: 20px;">
+        <div class="btn-yellow"><a href="teacher_dashboard.php">← Kembali ke Dashboard</a></div>
       </div>
 
       <?php if (empty($notifications)): ?>
         <div class="empty-state">
           <span class="material-symbols-outlined" style="font-size: 64px; color: #ddd;">notifications_off</span>
           <h3>Tiada Pemberitahuan</h3>
-          <p>Anda akan menerima pemberitahuan tentang acara baru, status aktiviti, dan pengumuman penting di sini.</p>
-        </div>      <?php else: ?>
-        <?php foreach ($notifications as $notification): ?>
-          <?php
-          // Determine redirect URL based on notification type
+          <p>Anda akan menerima pemberitahuan tentang permohonan aktiviti pelajar dan pengumuman penting di sini.</p>
+        </div>
+      <?php else: ?>
+        <?php foreach ($notifications as $notification): ?>          <?php
+          // Determine redirect URL based on notification type for teachers
           $redirect_url = '#';
-          if ($notification['type'] === 'activity' || $notification['type'] === 'activity_submission' || $notification['type'] === 'activity_resubmission') {
-            $redirect_url = 'student_formhistory.php';
+          if ($notification['type'] === 'activity_submission') {
+            // New submissions go to approve form
+            $redirect_url = '../forms/approve_form.php?notification_id=' . $notification['id'];
+          } elseif ($notification['type'] === 'activity_resubmission') {
+            // Resubmissions go to audit history to see the complete history
+            $redirect_url = '../forms/audit_history.php?notification_id=' . $notification['id'];
+          } elseif ($notification['type'] === 'activity' || $notification['type'] === 'activity_approved' || $notification['type'] === 'activity_rejected') {
+            $redirect_url = '../forms/audit_history.php?notification_id=' . $notification['id'];
           } elseif ($notification['type'] === 'event' || $notification['type'] === 'registration' || $notification['type'] === 'deadline') {
             if ($notification['related_id']) {
-              $redirect_url = '../events/register_event.php?event_id=' . $notification['related_id'];
+              $redirect_url = '../events/manage_events.php?event_id=' . $notification['related_id'] . '&notification_id=' . $notification['id'];
             } else {
-              $redirect_url = 'student_events.php';
+              $redirect_url = '../events/manage_events.php?notification_id=' . $notification['id'];
             }
           }
           ?>
-          
-          <a href="<?= $redirect_url ?>" class="notification-item <?= $notification['is_read'] ? '' : 'unread' ?>" 
-             onclick="markAsRead(<?= $notification['id'] ?>)">
+            <a href="<?= $redirect_url ?>" class="notification-item <?= $notification['is_read'] ? '' : 'unread' ?>">
             <div class="notification-header">
               <h3 class="notification-title"><?= htmlspecialchars($notification['title']) ?></h3>
               <span class="notification-time"><?= date('d M Y, H:i', strtotime($notification['created_at'])) ?></span>
-            </div>
-            
-            <div class="notification-message">
+            </div>            <div class="notification-message">
               <?= htmlspecialchars($notification['message']) ?>
             </div>
             
@@ -249,15 +228,19 @@ $row = mysqli_fetch_assoc($result);
             <?php endfor; ?>
           </div>
         <?php endif; ?>
-      <?php endif; ?>    </div>
+      <?php endif; ?>
+    </div>
   </div>
-
   <script>
     function markAsRead(notificationId) {
-      // Mark as read when notification is clicked
+      // Mark as read when notification is clicked (non-blocking)
       fetch(`../api/mark_notification_read.php?id=${notificationId}`, {
         method: 'POST'
+      }).catch(function(error) {
+        console.log('Failed to mark as read:', error);
       });
+      // Don't prevent default link behavior
+      return true;
     }
 
     function markAsReadOnly(notificationId) {

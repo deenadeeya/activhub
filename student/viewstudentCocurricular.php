@@ -45,6 +45,34 @@ $stmt->execute();
 $result = $stmt->get_result();
 $row = $result->fetch_assoc();
 
+// Get pending count for teacher notification badge
+$pending_count = 0;
+if ($_SESSION['user_role'] === 'teacher') {
+    $teacher_ic = $_SESSION['user_ic'];
+    $teacher_class_id = null;
+    $sql_class_id = "SELECT class_id FROM class WHERE head_teacher = '$teacher_ic'";
+    $result_class_id = mysqli_query($conn, $sql_class_id);
+    if ($result_class_id && mysqli_num_rows($result_class_id) > 0) {
+        $row_class_id = mysqli_fetch_assoc($result_class_id);
+        $teacher_class_id = $row_class_id['class_id'];
+        
+        if ($teacher_class_id) {
+            $pending_query = "
+                SELECT COUNT(*) AS total_pending
+                FROM cocu_activities ca
+                JOIN student s ON ca.student_ic = s.student_ic
+                WHERE ca.approval_status = 'pending' AND s.student_class = ?
+            ";
+            $stmt_pending = $conn->prepare($pending_query);
+            $stmt_pending->bind_param("s", $teacher_class_id);
+            $stmt_pending->execute();
+            $pending_result = $stmt_pending->get_result();
+            $pending_data = $pending_result->fetch_assoc();
+            $pending_count = $pending_data['total_pending'];
+        }
+    }
+}
+
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $cocu_year = $_POST['cocu_year'];
@@ -157,34 +185,9 @@ $activity_result = $stmt->get_result();
                         echo '<span class="admin-text">' . strtoupper($student['student_fname']) . '</span><br>';
                     }
                 }
-                ?>
-                <span class="welcome-text">Selamat Kembali!</span>
+                ?>                <span class="welcome-text">Selamat Kembali!</span>
             </div>
-            <?php
-        // Replace with your actual notification count variable
-        $notif_count = $pending_count;
-        ?>
-
-        <button onclick="location.href='student_formhistory.php'" style="position: relative; background: none; border: none; cursor: pointer;">
-          <span class="material-symbols-outlined icon" style="font-size: 28px; color: white;">
-            notifications
-          </span>
-
-          <?php if ($notif_count > 0): ?>
-            <span style="
-              position: absolute;
-              top: -5px;
-              right: -5px;
-              background: red;
-              color: white;
-              border-radius: 50%;
-              padding: 4px 7px;
-              font-size: 12px;
-            ">
-              <?php echo $notif_count; ?>
-            </span>
-          <?php endif; ?>
-        </button>
+            <?php include '../includes/notifications_panel.php'; ?>
         </div>
     </header>
 

@@ -11,6 +11,13 @@ if (!isset($_SESSION['user_ic']) || $_SESSION['user_role'] !== 'teacher') {
 
 $teacher_ic = $_SESSION['user_ic'];
 
+// Handle notification marking as read
+if (isset($_GET['notification_id'])) {
+    $notification_id = intval($_GET['notification_id']);
+    $notificationService = new NotificationService($conn);
+    $notificationService->markAsRead($notification_id, $teacher_ic);
+}
+
 // Get teacher's class from class table (since they're head teachers)
 $classQuery = "SELECT class_id FROM class WHERE head_teacher = '$teacher_ic'";
 $classResult = mysqli_query($conn, $classQuery);
@@ -52,9 +59,14 @@ if (!$classResult || mysqli_num_rows($classResult) == 0) {
         if (mysqli_query($conn, $updateQuery)) {
             $success_message = "Aktiviti '{$activity_data['activity_name']}' untuk pelajar {$activity_data['student_fname']} telah berjaya diluluskan!";
             
+            // Mark related teacher notifications as read
+            $notificationService = new NotificationService($conn);
+            $stmt = $conn->prepare("UPDATE notifications SET is_read = 1 WHERE user_ic = ? AND related_id = ? AND related_table = 'cocu_activities' AND type IN ('activity_submission', 'activity_resubmission')");
+            $stmt->bind_param("si", $teacher_ic, $activity_id);
+            $stmt->execute();
+            
             // 🔥 NEW: Create modern notification for approval
             if ($activity_data) {
-                $notificationService = new NotificationService($conn);
                 $notificationService->notifyActivityStatusChange(
                     $activity_data['student_ic'], 
                     $activity_data['activity_name'], 
@@ -91,10 +103,14 @@ if (!$classResult || mysqli_num_rows($classResult) == 0) {
         if (mysqli_query($conn, $updateQuery)) {
             $success_message = "Aktiviti '{$activity_data['activity_name']}' untuk pelajar {$activity_data['student_fname']} telah ditolak dengan sebab: {$rejection_remarks}";
             
+            // Mark related teacher notifications as read
+            $notificationService = new NotificationService($conn);
+            $stmt = $conn->prepare("UPDATE notifications SET is_read = 1 WHERE user_ic = ? AND related_id = ? AND related_table = 'cocu_activities' AND type IN ('activity_submission', 'activity_resubmission')");
+            $stmt->bind_param("si", $teacher_ic, $activity_id);
+            $stmt->execute();
+            
             // 🔥 NEW: Create modern notification for rejection with custom message
             if ($activity_data) {
-                $notificationService = new NotificationService($conn);
-                
                 // Create custom rejection notification with remarks
                 $title = "Aktiviti Ditolak";
                 $message = "Aktiviti '{$activity_data['activity_name']}' telah ditolak. Sebab: {$rejection_remarks}";
@@ -125,22 +141,24 @@ if (!$classResult || mysqli_num_rows($classResult) == 0) {
     $result = mysqli_query($conn, $query);
 }
 
-// Pending approval count
-$pending_count = 0;
+// Mark activity-related notifications as read when teacher views this page
 if (isset($teacherClass)) {
-    $pending_query = "
-            SELECT COUNT(*) AS total_pending
-            FROM cocu_activities ca
-            JOIN student s ON ca.student_ic = s.student_ic
-            WHERE ca.approval_status = 'pending' AND s.student_class = ?
-        ";
-    $stmt = $conn->prepare($pending_query);
-    $stmt->bind_param("s", $teacherClass);
+    $mark_read_query = "
+        UPDATE notifications 
+        SET is_read = 1 
+        WHERE user_ic = ? 
+        AND user_role = 'teacher' 
+        AND type IN ('activity_submission', 'activity_resubmission')
+        AND is_read = 0
+    ";
+    $stmt = $conn->prepare($mark_read_query);
+    $stmt->bind_param("s", $teacher_ic);
     $stmt->execute();
-    $pending_result = $stmt->get_result();
-    $pending_data = $pending_result->fetch_assoc();
-    $pending_count = $pending_data['total_pending'];
 }
+
+// Pending approval count using NotificationService
+$notificationService = new NotificationService($conn);
+$pending_count = $notificationService->getUnreadCount($teacher_ic);
 ?>
 
 <!DOCTYPE html>
@@ -435,16 +453,7 @@ if (isset($teacherClass)) {
                     ?>
                     <span class="welcome-text">Selamat Kembali!</span>
                 </div>
-                                <button onclick="location.href='approve_form.php'" style="position: relative; background: none; border: none; cursor: pointer;">
-                    <span class="material-symbols-outlined icon" style="font-size: 28px; color: white;">
-                    notifications
-                    </span>
-                    <?php if ($pending_count > 0): ?>
-                    <span style="position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; padding: 4px 7px; font-size: 12px;">
-                        <?php echo $pending_count; ?>
-                    </span>
-                    <?php endif; ?>
-                </button>
+                                <?php include '../includes/notifications_panel.php'; ?>
             </div>
         </header>
 

@@ -151,7 +151,40 @@ $notificationService->cleanupExpiredNotifications();
 }
 </style>
 
-<div class="notification-dropdown">
+<div class="notification-dropdown">    <?php
+    // Determine correct path to notifications.php based on current location and user role
+    $current_dir = basename(dirname($_SERVER['PHP_SELF']));
+    $notifications_path = '';
+    
+    if (isset($_SESSION['user_role'])) {
+        if ($_SESSION['user_role'] === 'student') {
+            if ($current_dir === 'student') {
+                $notifications_path = 'notifications.php';
+            } else {
+                $notifications_path = '../student/notifications.php';
+            }
+        } elseif ($_SESSION['user_role'] === 'teacher') {
+            if ($current_dir === 'teacher') {
+                $notifications_path = 'notifications.php';
+            } else {
+                $notifications_path = '../teacher/notifications.php';
+            }
+        }
+    }
+    ?>
+    
+    <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'student' || $_SESSION['user_role'] === 'teacher')): ?>
+    <!-- Enhanced notification bell for students and teachers -->
+    <button class="notification-bell" onclick="toggleNotifications()" ondblclick="goToNotifications()" title="Klik untuk dropdown, double-click untuk halaman pemberitahuan">
+        <span class="material-symbols-outlined icon" style="font-size: 28px; color: white;">
+            notifications
+        </span>
+        <?php if ($unread_count > 0): ?>
+            <span class="notification-badge"><?= $unread_count > 99 ? '99+' : $unread_count ?></span>
+        <?php endif; ?>
+    </button>
+    <?php else: ?>
+    <!-- Default notification bell for admins -->
     <button class="notification-bell" onclick="toggleNotifications()">
         <span class="material-symbols-outlined icon" style="font-size: 28px; color: white;">
             notifications
@@ -160,6 +193,7 @@ $notificationService->cleanupExpiredNotifications();
             <span class="notification-badge"><?= $unread_count > 99 ? '99+' : $unread_count ?></span>
         <?php endif; ?>
     </button>
+    <?php endif; ?>
 
     <div class="notification-panel" id="notificationPanel">
         <div class="notification-header">
@@ -178,21 +212,76 @@ $notificationService->cleanupExpiredNotifications();
                     <span class="material-symbols-outlined" style="font-size: 48px; color: #ddd;">notifications_off</span>
                     <p>Tiada pemberitahuan</p>
                 </div>
-            <?php else: ?>
-                <?php foreach ($recent_notifications as $notification): ?>
-                    <div class="notification-item <?= $notification['is_read'] ? '' : 'unread' ?>" 
-                         onclick="handleNotificationClick(<?= $notification['id'] ?>, '<?= $notification['related_table'] ?>', <?= $notification['related_id'] ?>)">
+            <?php else: ?>                <?php foreach ($recent_notifications as $notification): ?>
+                    <?php
+                    // Determine redirect URL based on notification type and user role
+                    $redirect_url = '#';
+                    
+                    if (isset($_SESSION['user_role'])) {
+                        if ($_SESSION['user_role'] === 'student') {
+                            // Student notification routing
+                            if ($notification['type'] === 'activity' || $notification['type'] === 'activity_submission' || $notification['type'] === 'activity_resubmission') {
+                                $redirect_url = ($current_dir === 'student') ? 'student_formhistory.php' : '../student/student_formhistory.php';
+                            } elseif ($notification['type'] === 'event' || $notification['type'] === 'registration' || $notification['type'] === 'deadline') {
+                                if ($notification['related_id']) {
+                                    $redirect_url = ($current_dir === 'student') ? '../events/register_event.php?event_id=' . $notification['related_id'] : '../events/register_event.php?event_id=' . $notification['related_id'];
+                                } else {
+                                    $redirect_url = ($current_dir === 'student') ? 'student_events.php' : '../student/student_events.php';
+                                }
+                            }                        } elseif ($_SESSION['user_role'] === 'teacher') {
+                            // Teacher notification routing
+                            if ($notification['type'] === 'activity_submission') {
+                                // New submissions go to approve form
+                                $redirect_url = '../forms/approve_form.php';
+                            } elseif ($notification['type'] === 'activity_resubmission') {
+                                // Resubmissions go to audit history to see the complete history
+                                $redirect_url = '../forms/audit_history.php';
+                            } elseif ($notification['type'] === 'activity' || $notification['type'] === 'activity_approved' || $notification['type'] === 'activity_rejected') {
+                                $redirect_url = '../forms/audit_history.php';
+                            } elseif ($notification['type'] === 'event' || $notification['type'] === 'registration' || $notification['type'] === 'deadline') {
+                                $redirect_url = '../events/manage_events.php';
+                            }
+                        }
+                    }
+                    ?>                    <div class="notification-item <?= $notification['is_read'] ? '' : 'unread' ?>" 
+                         onclick="window.location.href='<?= $redirect_url ?>?notification_id=<?= $notification['id'] ?>'">>
                         <div class="notification-title"><?= htmlspecialchars($notification['title']) ?></div>
                         <div class="notification-message"><?= htmlspecialchars($notification['message']) ?></div>
                         <div class="notification-time"><?= timeAgo($notification['created_at']) ?></div>
                     </div>
                 <?php endforeach; ?>
             <?php endif; ?>
-        </div>
-
-        <?php if (!empty($recent_notifications)): ?>
+        </div>        <?php if (!empty($recent_notifications)): ?>
         <div class="notification-footer">
-            <a href="notifications.php">Lihat Semua Pemberitahuan</a>
+            <?php
+            // Determine correct path to notifications.php based on current location and user role
+            $current_dir = basename(dirname($_SERVER['PHP_SELF']));
+            $notifications_path = '';
+            
+            if (isset($_SESSION['user_role'])) {
+                if ($_SESSION['user_role'] === 'student') {
+                    if ($current_dir === 'student') {
+                        $notifications_path = 'notifications.php';
+                    } else {
+                        $notifications_path = '../student/notifications.php';
+                    }
+                } elseif ($_SESSION['user_role'] === 'teacher') {
+                    if ($current_dir === 'teacher') {
+                        $notifications_path = 'notifications.php';
+                    } else {
+                        $notifications_path = '../teacher/notifications.php';
+                    }
+                } else {
+                    // For admin or other roles, hide the link
+                    $notifications_path = '';
+                }
+            }
+            ?>
+            <?php if ($notifications_path): ?>
+                <a href="<?= $notifications_path ?>">Lihat Semua Pemberitahuan</a>
+            <?php else: ?>
+                <span style="color: #666; font-style: italic;">Tiada halaman pemberitahuan khusus</span>
+            <?php endif; ?>
         </div>
         <?php endif; ?>
     </div>
@@ -204,6 +293,12 @@ function toggleNotifications() {
     panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
 }
 
+function goToNotifications() {
+    <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'student' || $_SESSION['user_role'] === 'teacher')): ?>
+    window.location.href = '<?= $notifications_path ?>';
+    <?php endif; ?>
+}
+
 function handleNotificationClick(notificationId, relatedTable, relatedId) {
     // Mark as read
     markAsRead(notificationId);
@@ -212,6 +307,16 @@ function handleNotificationClick(notificationId, relatedTable, relatedId) {
     if (relatedTable === 'events' && relatedId) {
         // Could redirect to event details or registration page
         console.log('Event notification clicked:', relatedId);
+    }
+}
+
+function handleSmartNotificationClick(notificationId, redirectUrl) {
+    // Mark as read
+    markAsRead(notificationId);
+    
+    // Navigate to the specified URL
+    if (redirectUrl && redirectUrl !== '#') {
+        window.location.href = redirectUrl;
     }
 }
 

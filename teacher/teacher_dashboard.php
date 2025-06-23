@@ -1,6 +1,7 @@
 <?php
 require_once '../config/connect.php';
 require_once '../includes/session_check.php';
+require_once '../includes/NotificationService.php';
 include '../includes/header.php';
 
 if (!isset($_SESSION['user_ic']) || $_SESSION['user_role'] !== 'teacher') {
@@ -47,22 +48,9 @@ if ($result && $result->num_rows > 0) {
     $class_name = "Belum ditetapkan";
   }
 
-  // Pending approval count
-  $pending_count = 0;
-  if ($teacher_class_id) {
-    $pending_query = "
-            SELECT COUNT(*) AS total_pending
-            FROM cocu_activities ca
-            JOIN student s ON ca.student_ic = s.student_ic
-            WHERE ca.approval_status = 'pending' AND s.student_class = ?
-        ";
-    $stmt = $conn->prepare($pending_query);
-    $stmt->bind_param("s", $teacher_class_id);
-    $stmt->execute();
-    $pending_result = $stmt->get_result();
-    $pending_data = $pending_result->fetch_assoc();
-    $pending_count = $pending_data['total_pending'];
-  }
+  // Pending approval count - Use NotificationService
+  $notificationService = new NotificationService($conn);
+  $pending_count = $notificationService->getUnreadCount($teacher_ic);
 
   // Leaderboard
   $leaderboard_query = "
@@ -109,16 +97,7 @@ if ($result && $result->num_rows > 0) {
         <span class="admin-text"><?php echo strtoupper($teacher['teacher_fname']); ?></span><br>
         <span class="welcome-text">Selamat Kembali!</span>
       </div>
-      <button onclick="location.href='../forms/approve_form.php'" style="position: relative; background: none; border: none; cursor: pointer;">
-        <span class="material-symbols-outlined icon" style="font-size: 28px; color: white;">
-          notifications
-        </span>
-        <?php if ($pending_count > 0): ?>
-          <span style="position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; padding: 4px 7px; font-size: 12px;">
-            <?php echo $pending_count; ?>
-          </span>
-        <?php endif; ?>
-      </button>
+      <?php include '../includes/notifications_panel.php'; ?>
     </div>
   </header>
 
@@ -137,6 +116,16 @@ if ($result && $result->num_rows > 0) {
         <p>
         <div class="salam">السلام عليكم</div><?php echo strtoupper($teacher['teacher_fname']); ?></p>
 
+        <?php if ($pending_count > 0): ?>
+        <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+          <h4 style="margin: 0 0 10px 0; color: #856404;">📢 Pemberitahuan Pending</h4>
+          <p style="margin: 0; color: #856404;">
+            Anda mempunyai <strong><?php echo $pending_count; ?></strong> pemberitahuan yang belum dibaca.
+            <a href="notifications.php" style="color: #856404; text-decoration: underline;">Lihat semua</a>
+          </p>
+        </div>
+        <?php endif; ?>
+
         <!-- <h3>Class Info</h3>
         <p><strong>Class Name:</strong> <?php echo htmlspecialchars($class_name); ?></p>
         <p><strong>Class ID:</strong> <?php echo htmlspecialchars($teacher_class_id ?? 'N/A'); ?></p>
@@ -146,8 +135,16 @@ if ($result && $result->num_rows > 0) {
         <button class="btn-yellow" onclick="window.location.href='../forms/audit_history.php'">BORANG SEJARAH</button>
         <button class="btn-yellow" onclick="window.location.href='../teacher/teacher_profile.php'">PROFIL GURU</button>
         <button class="btn-yellow" onclick="window.location.href='../student/studentList.php'">SENARAI PELAJAR</button>
-        <button class="btn-yellow" onclick="location.href='../forms/approve_form.php'" style="position: relative;">
+        <button class="btn-yellow" onclick="location.href='../forms/approve_form.php'" style="position: relative;" title="Klik untuk melihat senarai borang yang menunggu kelulusan">
           SENARAI BORANG
+          <?php if ($pending_count > 0): ?>
+            <span style="position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; padding: 4px 7px; font-size: 12px;">
+              <?php echo $pending_count; ?>
+            </span>
+          <?php endif; ?>
+        </button>
+        <button class="btn-blue" onclick="location.href='notifications.php'" style="position: relative;" title="Klik untuk melihat semua pemberitahuan">
+          PEMBERITAHUAN
           <?php if ($pending_count > 0): ?>
             <span style="position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; padding: 4px 7px; font-size: 12px;">
               <?php echo $pending_count; ?>

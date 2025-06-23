@@ -37,7 +37,7 @@ $result = mysqli_query($conn, $sql);
             <div class="user-section">
                 <span class="welcome-text">Selamat Kembali!<br> <?= htmlspecialchars($_SESSION['user_ic']) ?></span>
             </div>
-            <span class="material-symbols-outlined icon">notifications</span>
+            <?php include '../includes/notifications_panel.php'; ?>
         </div>
     </header>
 

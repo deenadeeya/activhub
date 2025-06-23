@@ -31,7 +31,7 @@ include '../includes/header.php';
       <span class="admin-text">Admin</span>
       <span class="welcome-text">Selamat Kembali!</span>
     </div>
-    <span class="material-symbols-outlined icon">notifications</span>
+    <?php include '../includes/notifications_panel.php'; ?>
   </div>
 </header>
 <div class="container">

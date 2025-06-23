@@ -1,5 +1,6 @@
 <?php
 require_once '../includes/session_check.php';
+require_once '../includes/NotificationService.php';
 include '../config/connect.php';
 include '../includes/header.php';
 
@@ -11,6 +12,13 @@ if (!isset($_SESSION['user_ic']) || !in_array($_SESSION['user_role'], ['teacher'
 
 $user_ic = $_SESSION['user_ic'];
 $user_role = $_SESSION['user_role'];
+
+// Handle notification marking as read
+if (isset($_GET['notification_id'])) {
+    $notification_id = intval($_GET['notification_id']);
+    $notificationService = new NotificationService($conn);
+    $notificationService->markAsRead($notification_id, $user_ic);
+}
 
 // Get events with detailed information
 $events_query = "
@@ -301,8 +309,7 @@ if ($user_role === 'teacher') {
                 <?php include '../includes/navlinks.php'; ?>
             </div>
         </div>
-        <div class="icon-section">
-            <div class="user-section">
+        <div class="icon-section">            <div class="user-section">
                 <?php
                 if ($user_role === 'admin') {
                     echo '<span class="admin-text">' . strtoupper($_SESSION['admin_name'] ?? 'ADMIN') . '</span><br>';
@@ -315,16 +322,7 @@ if ($user_role === 'teacher') {
                 ?>
                 <span class="welcome-text">Selamat Kembali!</span>
             </div>
-            <?php if ($user_role === 'teacher'): ?>
-                <button onclick="location.href='../forms/approve_form.php'" style="position: relative; background: none; border: none; cursor: pointer;">
-                    <span class="material-symbols-outlined icon" style="font-size: 28px; color: white;">notifications</span>
-                    <?php if ($pending_count > 0): ?>
-                        <span style="position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; padding: 4px 7px; font-size: 12px;">
-                            <?php echo $pending_count; ?>
-                        </span>
-                    <?php endif; ?>
-                </button>
-            <?php endif; ?>
+            <?php include '../includes/notifications_panel.php'; ?>
         </div>
     </header>
 

@@ -19,6 +19,14 @@ if (!isset($_SESSION['created'])) {
 include '../config/connect.php';
 include '../includes/header.php';
 
+// Handle notification marking as read
+if (isset($_GET['notification_id'])) {
+    $notification_id = intval($_GET['notification_id']);
+    require_once '../includes/NotificationService.php';
+    $notificationService = new NotificationService($conn);
+    $notificationService->markAsRead($notification_id, $_SESSION['user_ic']);
+}
+
 // Check authentication and authorization
 if (!isset($_SESSION['user_ic']) || !in_array($_SESSION['user_role'], ['teacher', 'admin'])) {
     echo "<script>alert('Unauthorized access.'); window.location.href='../login.php';</script>";
@@ -251,16 +259,7 @@ if ($user_role === 'teacher') {
                 ?>
                 <span class="welcome-text">Selamat Kembali!</span>
             </div>
-                  <button onclick="location.href='../approve_form.php'" style="position: relative; background: none; border: none; cursor: pointer;">
-                    <span class="material-symbols-outlined icon" style="font-size: 28px; color: white;">
-                    notifications
-                    </span>
-                    <?php if ($pending_count > 0): ?>
-                    <span style="position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; padding: 4px 7px; font-size: 12px;">
-                        <?php echo $pending_count; ?>
-                    </span>
-                    <?php endif; ?>
-                </button>
+            <?php include '../includes/notifications_panel.php'; ?>
         </div>
     </header>
     <div class="container">

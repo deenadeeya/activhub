@@ -177,11 +177,7 @@ $role_options = [
                 ?>
                 <span class="welcome-text">Selamat Kembali!</span>
             </div>
-            <button onclick="location.href='../forms/approve_form.php'" style="position: relative; background: none; border: none; cursor: pointer;">
-                <span class="material-symbols-outlined icon" style="font-size: 28px; color: white;">
-                notifications
-                </span>
-            </button>
+            <?php include '../includes/notifications_panel.php'; ?>
         </div>
     </header>
 

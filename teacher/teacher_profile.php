@@ -169,20 +169,11 @@ if ($result && $result->num_rows > 0) {
         </div>
 
         <div class="icon-section">
-            <div class="admin-section">
+            <div class="user-section">
                 <span class="admin-text"><?php echo strtoupper(htmlspecialchars($row['teacher_fname'])); ?></span><br>
                 <span class="welcome-text">Selamat Kembali!</span>
             </div>
-                <button onclick="location.href='../forms/approve_form.php'" style="position: relative; background: none; border: none; cursor: pointer;">
-                    <span class="material-symbols-outlined icon" style="font-size: 28px; color: white;">
-                    notifications
-                    </span>
-                    <?php if ($pending_count > 0): ?>
-                    <span style="position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; padding: 4px 7px; font-size: 12px;">
-                        <?php echo $pending_count; ?>
-                    </span>
-                    <?php endif; ?>
-                </button>
+            <?php include '../includes/notifications_panel.php'; ?>
         </div>
     </header>
 

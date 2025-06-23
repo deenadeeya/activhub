@@ -1,6 +1,7 @@
 <?php
 include '../config/connect.php';
 require_once '../includes/session_check.php';
+require_once '../includes/NotificationService.php';
 include '../includes/header.php';
 
 
@@ -133,6 +134,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['submit_competition'])
       
       if ($stmt->execute()) {
           $success_message = "Aktiviti berjaya dikemas kini dan dihantar semula untuk kelulusan.";
+          
+          // Create notification for teacher about resubmission
+          $notificationService = new NotificationService($conn);
+          
+          // Get teacher IC for this student
+          $teacher_query = "SELECT c.head_teacher FROM student s JOIN class c ON s.student_class = c.class_id WHERE s.student_ic = ?";
+          $teacher_stmt = $conn->prepare($teacher_query);
+          $teacher_stmt->bind_param("s", $student_ic);
+          $teacher_stmt->execute();
+          $teacher_result = $teacher_stmt->get_result();
+          
+          if ($teacher_data = $teacher_result->fetch_assoc()) {
+              $teacher_ic = $teacher_data['head_teacher'];
+              $notificationService->notifyTeacherActivitySubmission($teacher_ic, $student_ic, $activity_name, $edit_data['id'], true);
+          }
       } else {
           $error_message = "Error updating activity: " . $stmt->error;
       }
@@ -205,12 +221,58 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['submit_competition'])
         );
         if ($stmt->execute()) {
             $success_message = "Borang berjaya dihantar. Sila tunggu kelulusan guru anda.";
+            
+            // Create notification for teacher about new submission
+            $notificationService = new NotificationService($conn);
+            
+            // Get teacher IC for this student
+            $teacher_query = "SELECT c.head_teacher FROM student s JOIN class c ON s.student_class = c.class_id WHERE s.student_ic = ?";
+            $teacher_stmt = $conn->prepare($teacher_query);
+            $teacher_stmt->bind_param("s", $student_ic);
+            $teacher_stmt->execute();
+            $teacher_result = $teacher_stmt->get_result();
+            
+            if ($teacher_data = $teacher_result->fetch_assoc()) {
+                $teacher_ic = $teacher_data['head_teacher'];
+                
+                // Get the last inserted ID for the notification
+                $activity_id = $conn->insert_id;
+                $notificationService->notifyTeacherActivitySubmission($teacher_ic, $student_ic, $activity_name, $activity_id, false);
+            }
         } else {
             $error_message = "Error saving activity: " . $stmt->error;
         }
         $stmt->close();
     }
   }
+}
+
+// Get pending count for notification badge (for teachers)
+$pending_count = 0;
+if ($_SESSION['user_role'] === 'teacher') {
+    $teacher_ic = $_SESSION['user_ic'];
+    $teacher_class_id = null;
+    $sql_class_id = "SELECT class_id FROM class WHERE head_teacher = '$teacher_ic'";
+    $result_class_id = mysqli_query($conn, $sql_class_id);
+    if ($result_class_id && mysqli_num_rows($result_class_id) > 0) {
+        $row_class_id = mysqli_fetch_assoc($result_class_id);
+        $teacher_class_id = $row_class_id['class_id'];
+        
+        if ($teacher_class_id) {
+            $pending_query = "
+                SELECT COUNT(*) AS total_pending
+                FROM cocu_activities ca
+                JOIN student s ON ca.student_ic = s.student_ic
+                WHERE ca.approval_status = 'pending' AND s.student_class = ?
+            ";
+            $stmt_pending = $conn->prepare($pending_query);
+            $stmt_pending->bind_param("s", $teacher_class_id);
+            $stmt_pending->execute();
+            $pending_result = $stmt_pending->get_result();
+            $pending_data = $pending_result->fetch_assoc();
+            $pending_count = $pending_data['total_pending'];
+        }
+    }
 }
 
 ?>
@@ -385,7 +447,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['submit_competition'])
         ?>
         <span class="welcome-text">Selamat Kembali!</span>
       </div>
-      <span class="material-symbols-outlined icon">notifications</span>
+      <?php include '../includes/notifications_panel.php'; ?>
     </div>
   </header>
 

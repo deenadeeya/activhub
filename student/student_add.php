@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="admin-section">
         <span class="welcome-text">Selamat Datang,<br> <?= htmlspecialchars($username) ?>!</span>
       </div>
-      <span class="material-symbols-outlined icon">notifications</span>
+      <?php include '../includes/notifications_panel.php'; ?>
     </div>
   </header>
 
