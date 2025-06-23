@@ -148,6 +148,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['submit_competition'])
 
       if ($_SESSION['user_role'] === 'teacher') {
         $student_ics = $_POST['student_ic']; // This is now an array
+        $success_count = 0;
         foreach ($student_ics as $student_ic) {
             $stmt = $conn->prepare($sql);
             $stmt->bind_param(
@@ -163,13 +164,29 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['submit_competition'])
                 $cert_path,
                 $approval_status
             );
-            $stmt->execute();
+            if ($stmt->execute()) {
+                $success_count++;
+            }
             $stmt->close();
         }
-        // Redirect back to the first student's view if we came from a specific student, otherwise use the first selected student
-        $redirect_student_ic = $target_student_ic ? $target_student_ic : $student_ics[0];
-        header("Location: viewstudentCocurricular.php?student_ic=" . urlencode($redirect_student_ic));
-        exit;
+        
+        if ($success_count > 0) {
+            if (count($student_ics) == 1) {
+                $success_message = "Aktiviti berjaya ditambah untuk 1 murid dan telah diluluskan secara automatik.";
+                $redirect_student_ic = $target_student_ic ? $target_student_ic : $student_ics[0];
+                $redirect_url = "viewstudentCocurricular.php?student_ic=" . urlencode($redirect_student_ic);
+            } else {
+                $success_message = "Aktiviti berjaya ditambah untuk $success_count murid dan telah diluluskan secara automatik.";
+                // If multiple students selected and no target student, redirect to dashboard
+                if (!$target_student_ic) {
+                    $redirect_url = "../teacher/teacher_dashboard.php";
+                } else {
+                    $redirect_url = "viewstudentCocurricular.php?student_ic=" . urlencode($target_student_ic);
+                }
+            }
+        } else {
+            $error_message = "Ralat berlaku semasa menambah aktiviti. Sila cuba lagi.";
+        }
     } else {
         // For students, use their own IC
         $stmt = $conn->prepare($sql);
@@ -385,10 +402,50 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['submit_competition'])
     <?php if (isset($success_message)): ?>
       <div id="successModal" class="modal-message">
         <div class="modal-message-content">
-          <span class="close-modal" onclick="document.getElementById('successModal').style.display='none'">&times;</span>
+          <span class="close-modal" onclick="closeSuccessModal()">&times;</span>
           <?php echo $success_message; ?>
+          <?php if (isset($redirect_url)): ?>
+            <div style="margin-top: 15px; font-size: 0.9em; color: #666;">
+              <?php if (strpos($redirect_url, 'teacher_dashboard.php') !== false): ?>
+                Anda akan dialihkan ke papan pemuka dalam <span id="countdown">3</span> saat...
+              <?php else: ?>
+                Anda akan dialihkan ke profil murid dalam <span id="countdown">3</span> saat...
+              <?php endif; ?>
+            </div>
+          <?php endif; ?>
         </div>
       </div>
+      
+      <?php if (isset($redirect_url)): ?>
+        <script>
+          let countdownTimer = 3;
+          const countdownElement = document.getElementById('countdown');
+          
+          function updateCountdown() {
+            countdownElement.textContent = countdownTimer;
+            if (countdownTimer <= 0) {
+              window.location.href = '<?php echo $redirect_url; ?>';
+            } else {
+              countdownTimer--;
+              setTimeout(updateCountdown, 1000);
+            }
+          }
+          
+          function closeSuccessModal() {
+            document.getElementById('successModal').style.display = 'none';
+            window.location.href = '<?php echo $redirect_url; ?>';
+          }
+          
+          // Start countdown
+          setTimeout(updateCountdown, 1000);
+        </script>
+      <?php else: ?>
+        <script>
+          function closeSuccessModal() {
+            document.getElementById('successModal').style.display = 'none';
+          }
+        </script>
+      <?php endif; ?>
     <?php endif; ?>
     <?php if (isset($error_message)) echo "<p style='color:red;'>$error_message</p>"; ?>
 

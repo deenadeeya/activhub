@@ -376,7 +376,7 @@ $activity_result = $stmt->get_result();
                     <?php endwhile; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="6" style="text-align: center;">Tiada aktiviti ditemui.</td>
+                        <td colspan="7" style="text-align: center;">Tiada aktiviti ditemui.</td>
                     </tr>
                 <?php endif; ?>
             </tbody>

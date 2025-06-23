@@ -150,7 +150,6 @@ if ($result && $row_pending = mysqli_fetch_assoc($result)) {
 
         <div class="action-buttons">
           <button class="yellow" onClick="document.location.href='student_dashboard.php';">PAPAN PEMUKA</button>
-          <button class="yellow">PETI MASUK</button>
           <form action="../auth/logout.php" method="post">
             <button type="submit" class="red">DAFTAR KELUAR</button>
           </form>
