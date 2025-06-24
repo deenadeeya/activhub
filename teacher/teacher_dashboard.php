@@ -116,16 +116,6 @@ if ($result && $result->num_rows > 0) {
         <p>
         <div class="salam">السلام عليكم</div><?php echo strtoupper($teacher['teacher_fname']); ?></p>
 
-        <?php if ($pending_count > 0): ?>
-        <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
-          <h4 style="margin: 0 0 10px 0; color: #856404;">📢 Pemberitahuan Pending</h4>
-          <p style="margin: 0; color: #856404;">
-            Anda mempunyai <strong><?php echo $pending_count; ?></strong> pemberitahuan yang belum dibaca.
-            <a href="notifications.php" style="color: #856404; text-decoration: underline;">Lihat semua</a>
-          </p>
-        </div>
-        <?php endif; ?>
-
         <!-- <h3>Class Info</h3>
         <p><strong>Class Name:</strong> <?php echo htmlspecialchars($class_name); ?></p>
         <p><strong>Class ID:</strong> <?php echo htmlspecialchars($teacher_class_id ?? 'N/A'); ?></p>
@@ -135,14 +125,7 @@ if ($result && $result->num_rows > 0) {
         <button class="btn-yellow" onclick="window.location.href='../forms/audit_history.php'">BORANG SEJARAH</button>
         <button class="btn-yellow" onclick="window.location.href='../teacher/teacher_profile.php'">PROFIL GURU</button>
         <button class="btn-yellow" onclick="window.location.href='../student/studentList.php'">SENARAI PELAJAR</button>
-        <button class="btn-yellow" onclick="location.href='../forms/approve_form.php'" style="position: relative;" title="Klik untuk melihat senarai borang yang menunggu kelulusan">
-          SENARAI BORANG
-          <?php if ($pending_count > 0): ?>
-            <span style="position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; padding: 4px 7px; font-size: 12px;">
-              <?php echo $pending_count; ?>
-            </span>
-          <?php endif; ?>
-        </button>
+        <button class="btn-yellow" onclick="location.href='../forms/approve_form.php'">SENARAI BORANG</button>
         <button class="btn-yellow" onclick="location.href='../student/student_cocuactivityform.php'">TAMBAH AKTIVITI MURID</button>
         <button class="btn-yellow" onclick="location.href='../events/add_events.php'">TAMBAH ACARA KOKURIKULUM</button>
         <button class="btn-yellow" onclick="location.href ='../cocurricular/cocurricular_board.php'">PAPAN KOKURIKULUM</button>

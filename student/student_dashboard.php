@@ -184,24 +184,7 @@ if (isset($_GET['register']) && isset($_GET['event_id'])) {
     <div class="dashboard-content">
       <div class="left-panel card">
         <p><div class="salam">السلام عليكم</div><?php echo strtoupper($row['student_fname']); ?></p>
-        <button class="btn-yellow" onclick="location.href='student_formhistory.php'" style="position: relative;">
-          SEJARAH BORANG
-          <?php if ($total_notification_count > 0): ?>
-            <span style="
-              position: absolute;
-              top: -5px;
-              right: -5px;
-              background: red;
-              color: white;
-              border-radius: 50%;
-              padding: 4px 7px;
-              font-size: 12px;
-            ">
-              <?php echo $total_notification_count; ?>
-            </span>
-          <?php endif; ?>
-        </button>
-
+        <button class="btn-yellow" onClick="location.href='student_formhistory.php';">SEJARAH BORANG</button>
         <button class="btn-yellow" onClick="location.href='student_profile.php';">PROFIL MURID</button>
         <button class="btn-yellow" onClick="location.href='student_events.php';">ACARA SAYA</button>
         <button class="btn-yellow" onClick="location.href='student_cocurricular.php';">PROFIL & AKTIVITI KOKURIKULUM</button>
