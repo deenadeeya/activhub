@@ -36,12 +36,19 @@ $username = $user['name'] ?? 'User';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $student_ic = $_POST['student_ic'];
     $student_fname = $_POST['student_fname'];
-    $student_class = $_POST['student_class'];
-    $student_dob = $_POST['student_dob'];
+    $student_class = $_POST['student_class'];    $student_dob = $_POST['student_dob'];
     $student_doe = $_POST['student_doe'];
     $gender = $_POST['gender'];
-    $matrix = $_POST['matrix'];
-    $contact_num = $_POST['contact_num'];
+    $matrix = $_POST['matrix'];    $contact_num = $_POST['contact_num'];
+    $student_pass = $_POST['student_pass'];
+    
+    // Set default values for missing fields that are expected by the INSERT statement
+    $student_address = $_POST['student_address'] ?? '';
+    $student_emergency = $_POST['student_emergency'] ?? '';
+    $guardian_ic = $_POST['guardian_ic'] ?? '';
+    $guardian_name = $_POST['guardian_name'] ?? '';
+    $relationship = $_POST['relationship'] ?? '';
+    $guardian_address = $_POST['guardian_address'] ?? '';
 
     $stmt = $conn->prepare("SELECT teacher_ic FROM teacher WHERE class = ?");
     $stmt->bind_param("i", $student_class);
@@ -50,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $teacher = $res->fetch_assoc();
     $teacher_incharge = $teacher['teacher_ic'] ?? null;
 
-    $student_pass = password_hash($password, PASSWORD_DEFAULT);
+    $student_pass = password_hash($student_pass, PASSWORD_DEFAULT);
 
     $stmt = $conn->prepare("INSERT INTO student (student_ic, student_pass, student_fname, student_class, student_dob, student_doe, student_address, student_emergency, guardian_ic, guardian_name, relationship, guardian_address,contact_num, teacher_incharge) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
