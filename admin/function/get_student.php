@@ -47,6 +47,7 @@ if (mysqli_num_rows($result) > 0) {
     </div>
     <div class=\"student-actions\">
         <button class=\"btn-save\" onclick=\"save({$row["student_ic"]})\">Simpan</button>
+        <button class=\"btn-delete\" onclick=\"deleteStudent({$row["student_ic"]})\">Delete</button>
         <button class=\"btn-cancel\" onclick=\"cancel({$row["student_ic"]})\">Batal</button>
     </div>
     <style>
@@ -67,6 +68,18 @@ if (mysqli_num_rows($result) > 0) {
         }
         .btn-save {
             background-color: #28a745;
+            margin-left: 15px;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 5px;
+            width: 100%;
+        }
+        .btn-delete {
+            background-color: #dc3545;
+            margin-left: 15px;
             color: white;
             padding: 8px 15px;
             border: none;
@@ -77,6 +90,7 @@ if (mysqli_num_rows($result) > 0) {
         }
         .btn-cancel {
             background-color: #6c757d;
+            margin-left: 15px;
             color: white;
             padding: 8px 15px;
             border: none;
@@ -85,6 +99,7 @@ if (mysqli_num_rows($result) > 0) {
             width: 100%;
         }
         .btn-save:hover { background-color: #218838; }
+        .btn-delete:hover { background-color: #c82333; }
         .btn-cancel:hover { background-color: #5a6268; }
     </style>";
 } else {
