@@ -146,7 +146,11 @@ $classes = $class_query->fetch_all(MYSQLI_ASSOC);
                     <label>TARIKH DAFTAR DI SEKOLAH:</label>
                     <input type="date" name="student_doe">
                     <label>JANTINA:</label>
-                    <input type="text" name="gender">
+                    <select name="gender" required>
+                        <option value="">-- Pilih Jantina --</option>
+                        <option value="Lelaki">Lelaki</option>
+                        <option value="Perempuan">Perempuan</option>
+                    </select>
                     <label>NOMBOR TELEFON:</label>
                     <input type="text" name="contact_num">
                     <label>KELAS:</label>
