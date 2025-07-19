@@ -612,6 +612,30 @@ $years_result = mysqli_query($conn, $years_query);
                     alert(result.status == 1 ? "Updated successfully!" : "Update failed!");
                     document.getElementById(id).innerHTML = result.message;
                 });
+            function deleteStudent(id) {
+            const data = {
+                id: id
+            };
+
+            fetch('function/student_delete.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.status == 1) {
+                        alert("Pelajar " + id + " berjaya dipadam!");
+                    } else {
+                        alert("Padam pelajar " + id + " gagal: " + result.error);
+                    }
+                    location.href = "admin_studentList.php";
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
         }
         document.addEventListener('DOMContentLoaded', function() {
             <?php if (isset($_SESSION['import_result'])) : ?>
