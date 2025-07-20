@@ -282,8 +282,8 @@ if (isset($_GET['register']) && isset($_GET['event_id'])) {
     </div>
 
     <div class="leaderboard">
-      <h1>PAPAN PENDAHULU</h1>
-      <h3>“10 Pelajar Terbaik Dengan Jumlah Aktiviti Kokurikulum Terbanyak Tahun Ini”</h3>
+      <h1>LEADERBOARD</h1>
+      <h3>“10 Pelajar Terbaik Dengan Jumlah Aktiviti Kokurikulum Terbanyak”</h3>
 
       <table>
         <thead>
