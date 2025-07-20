@@ -215,8 +215,8 @@ if ($result && $result->num_rows > 0) {
     </div>
 
     <div class="leaderboard">
-      <h1>PAPAN PENDAHULU</h1>
-      <h3>“10 Pelajar Terbaik Dengan Jumlah Aktiviti Kokurikulum Terbanyak Bulan Ini”</h3>
+      <h1>Leaderboard</h1>
+      <h3>“10 Pelajar Terbaik Dengan Jumlah Aktiviti Kokurikulum Terbanyak”</h3>
       <table>
         <thead>
           <tr>
