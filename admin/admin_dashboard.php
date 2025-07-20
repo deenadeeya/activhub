@@ -175,8 +175,8 @@ $result = $stmt->get_result();
     </div>
 
     <div class="leaderboard">
-      <h1>PAPAN PENDAHULU</h1>
-      <h3>“10 Pelajar Terbaik Dengan Jumlah Aktiviti Kokurikulum Terbanyak Bulan Ini”</h3>
+      <h1>LEADERBOARD</h1>
+      <h3>“10 Pelajar Terbaik Dengan Jumlah Aktiviti Kokurikulum Terbanyak”</h3>
       <table>
         <thead>
           <tr>
